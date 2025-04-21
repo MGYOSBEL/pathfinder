@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"os/signal"
+
+	"github.com/MGYOSBEL/pathfinder/internal/mqtt"
 )
 
 func main() {
@@ -21,5 +23,13 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 	defer cancel()
 
 	fmt.Println("Hello Mars!!!")
+	client := mqtt.NewClient()
+	if err := client.Connect(); err != nil {
+		panic(err)
+	}
+	client.Subscribe()
+
+	// Wait for cancel
+	<-ctx.Done()
 	return nil
 }
