@@ -23,11 +23,20 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 	defer cancel()
 
 	fmt.Println("Hello Mars!!!")
-	client := mqtt.NewClient()
+	opts := mqtt.Options{
+		Server: "192.168.0.16:1883",
+		Topic:  "#",
+		QoS:    0,
+	}
+	client := mqtt.NewClient(opts)
 	if err := client.Connect(); err != nil {
 		panic(err)
 	}
-	client.Subscribe()
+	defer client.Disconnect()
+
+	client.Subscribe(func(message []byte) {
+		fmt.Printf("%s\n", message)
+	})
 
 	// Wait for cancel
 	<-ctx.Done()

@@ -1,20 +1,28 @@
 package mqtt
 
 import (
-	"fmt"
-
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
 
-type MqttClient struct {
-	client MQTT.Client
+type Options struct {
+	Server string
+	Topic  string
+	QoS    byte
 }
 
-func NewClient() *MqttClient {
-	opts := MQTT.NewClientOptions().AddBroker("192.168.0.16:1883")
+type MqttClient struct {
+	options Options
+	client  MQTT.Client
+}
+
+type Handler func(payload []byte)
+
+func NewClient(o Options) *MqttClient {
+	opts := MQTT.NewClientOptions().AddBroker(o.Server)
 	c := MQTT.NewClient(opts)
 	return &MqttClient{
-		client: c,
+		client:  c,
+		options: o,
 	}
 }
 
@@ -25,9 +33,14 @@ func (c *MqttClient) Connect() error {
 	return nil
 }
 
-func (c *MqttClient) Subscribe() error {
-	c.client.Subscribe("#", 0, func(c MQTT.Client, m MQTT.Message) {
-		fmt.Printf("Received message in %s: %s\n", m.Topic(), m.Payload())
+func (c *MqttClient) Subscribe(h Handler) error {
+	token := c.client.Subscribe(c.options.Topic, c.options.QoS, func(cl MQTT.Client, m MQTT.Message) {
+		h(m.Payload())
 	})
-	return nil
+	token.Wait()
+	return token.Error()
+}
+
+func (c *MqttClient) Disconnect() {
+	c.client.Disconnect(100)
 }
