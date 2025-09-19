@@ -1,0 +1,47 @@
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: timescale
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=password
+      - TIMESCALEDB_TELEMETRY=on # Disable telemetry
+      - TS_TUNE_MEMORY=4GB # Set available memory for tuning
+      - TS_TUNE_NUM_CPUS=4 # Set number of CPUs for tuning
+      - TS_TUNE_MAX_BG_WORKERS=16 # Set maximum number of background workers
+      - TS_TUNE_MAX_CONNS=200 # Set maximum number of connections
+      - NO_TS_TUNE=false # Run timescaledb-tune (set to true to disable tuning)
+    volumes:
+      - timescaledb-data:/var/lib/postgresql/data # Persist data to a named volume
+    networks:
+      - pathfinder_network_dev
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /data/loki-data && \
+        mkdir -p /data/loki-ruler && \
+        minio server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=loki
+      - MINIO_ROOT_PASSWORD=supersecret
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
+      - MINIO_UPDATE=off
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - minio-data:/data
+    networks:
+      - pathfinder_network_dev
+
+volumes:
+  timescaledb-data:
+    driver: local
+  minio-data:
+    driver: local

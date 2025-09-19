@@ -1,0 +1,10 @@
+services:
+  hivemq:
+    image: hivemq/hivemq-edge
+    ports:
+      - "1883:1883"
+      - "8083:8080"
+    container_name: hivemq-edge
+    restart: unless-stopped
+    networks:
+      - pathfinder_network_dev
