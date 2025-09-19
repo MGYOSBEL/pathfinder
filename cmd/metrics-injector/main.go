@@ -10,6 +10,13 @@ import (
 	"github.com/MGYOSBEL/pathfinder/internal/mqtt"
 )
 
+// TODO:
+// - Start with the service config
+// - Read it from DataPlatform to extract the specs
+// - Can it be improved some way???
+//
+//TODO: Start with the tests
+
 func main() {
 	ctx := context.Background()
 	if err := run(ctx, os.Stdout, os.Args); err != nil {

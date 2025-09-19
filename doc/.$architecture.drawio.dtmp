@@ -1,0 +1,53 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.4 Chrome/128.0.6613.186 Electron/32.2.5 Safari/537.36" version="26.0.4">
+  <diagram name="monitoring" id="vzcqFFh-o4w2N752E5V_">
+    <mxGraphModel dx="1434" dy="870" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="E_MlVgag8iTyY0F4gPKx-3" value="" style="group;fontColor=#000000;shadow=1;strokeWidth=2;" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="60" y="190" width="710" height="460" as="geometry" />
+        </mxCell>
+        <mxCell id="E_MlVgag8iTyY0F4gPKx-2" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#4D4D4D;glass=1;shadow=1;strokeWidth=2;perimeterSpacing=2;" vertex="1" parent="E_MlVgag8iTyY0F4gPKx-3">
+          <mxGeometry width="710" height="460.00000000000006" as="geometry" />
+        </mxCell>
+        <mxCell id="E_MlVgag8iTyY0F4gPKx-1" value="&lt;font face=&quot;JetBrains Mono&quot;&gt;&lt;b&gt;monitoring ns&lt;/b&gt;&lt;/font&gt;" style="aspect=fixed;sketch=0;html=1;dashed=0;whitespace=wrap;verticalLabelPosition=middle;verticalAlign=middle;fillColor=#2875E2;strokeColor=#ffffff;points=[[0.005,0.63,0],[0.1,0.2,0],[0.9,0.2,0],[0.5,0,0],[0.995,0.63,0],[0.72,0.99,0],[0.5,1,0],[0.28,0.99,0]];shape=mxgraph.kubernetes.icon2;prIcon=ns;labelPosition=left;align=right;" vertex="1" parent="E_MlVgag8iTyY0F4gPKx-3">
+          <mxGeometry x="670" width="31.25" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="E_MlVgag8iTyY0F4gPKx-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#FFC119;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="E_MlVgag8iTyY0F4gPKx-3" source="E_MlVgag8iTyY0F4gPKx-14" target="E_MlVgag8iTyY0F4gPKx-4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="380" y="381.4634146341464" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="570" y="378" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E_MlVgag8iTyY0F4gPKx-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=light-dark(#214499,#214499);entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="E_MlVgag8iTyY0F4gPKx-3" source="E_MlVgag8iTyY0F4gPKx-11" target="E_MlVgag8iTyY0F4gPKx-4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="270" y="382" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="160" y="378" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="E_MlVgag8iTyY0F4gPKx-4" value="" style="shape=image;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;image=https://grafana.com/media/docs/grafana-cloud/infrastructure/grafanalogo.svg;aspect=fixed;" vertex="1" parent="E_MlVgag8iTyY0F4gPKx-3">
+          <mxGeometry x="327.4" y="347.8048780487805" width="55.2" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="E_MlVgag8iTyY0F4gPKx-6" value="" style="shape=image;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;image=https://icon.icepanel.io/Technology/svg/Prometheus.svg;aspect=fixed;" vertex="1" parent="E_MlVgag8iTyY0F4gPKx-3">
+          <mxGeometry x="323" y="240" width="65" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="E_MlVgag8iTyY0F4gPKx-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF6600;strokeWidth=2;" edge="1" parent="E_MlVgag8iTyY0F4gPKx-3" source="E_MlVgag8iTyY0F4gPKx-6" target="E_MlVgag8iTyY0F4gPKx-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="E_MlVgag8iTyY0F4gPKx-11" value="" style="shape=image;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;image=https://grafana.com/static/assets/img/logos/grafana-tempo.svg;aspect=fixed;" vertex="1" parent="E_MlVgag8iTyY0F4gPKx-3">
+          <mxGeometry x="120" y="240" width="73.6" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="E_MlVgag8iTyY0F4gPKx-14" value="" style="shape=image;verticalLabelPosition=bottom;verticalAlign=top;imageAspect=0;image=https://grafana.com/media/docs/loki/logo-grafana-loki.png;aspect=fixed;" vertex="1" parent="E_MlVgag8iTyY0F4gPKx-3">
+          <mxGeometry x="530" y="230" width="70" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="E_MlVgag8iTyY0F4gPKx-7" value="METRICS" parent="0" />
+        <mxCell id="E_MlVgag8iTyY0F4gPKx-10" value="TRACES" style="" parent="0" />
+        <mxCell id="E_MlVgag8iTyY0F4gPKx-13" value="LOGS" parent="0" />
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,8 @@
+namespaceOverride: "monitoring"
+grafana:
+  enabled: true
+  adminPassword: admin
+  ingress: 
+    enabled: true
+    hosts:
+      - grafana.pathfinder.local
