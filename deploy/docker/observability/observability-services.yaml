@@ -1,0 +1,159 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - "--storage.tsdb.retention.time=180d" ### Mantener datos 6 meses
+      - "--storage.tsdb.retention.size=50GB" ### Limitar el tamaño total a 50GB
+      - "--storage.tsdb.path=/prometheus" ### Ruta de almacenamiento
+      - "--config.file=/etc/prometheus/prometheus.yml" ### Ruta de config
+    networks:
+      - pathfinder_network_dev
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - pathfinder_network_dev
+
+  # Since the Loki containers are running as user 10001 and the mounted data volume is owned by root,
+  # Loki would not have permissions to create the directories.
+  # Therefore the init container changes permissions of the mounted directory.
+  init:
+    image: alpine:latest
+    user: root
+    entrypoint:
+      - "chown"
+      - "10001:10001"
+      - "/data/loki"
+    volumes:
+      - loki-data:/data/loki
+    networks:
+      - pathfinder_network_dev
+
+  loki:
+    image: grafana/loki
+    # user: "1000:1000"
+    container_name: loki
+    ports:
+      - "3100:3100"
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    volumes:
+      - loki-data:/data/loki
+      - ./loki-config.yml:/etc/loki/loki-config.yml:ro
+    command:
+      - "--config.file=/etc/loki/loki-config.yml"
+      - "--target=all"
+      - "--config.expand-env=true"
+    depends_on:
+      - minio
+      - init
+    networks:
+      - pathfinder_network_dev
+
+  tempo:
+    image: grafana/tempo:2.2.1
+    container_name: tempo
+    command: ["-config.file=/etc/tempo/tempo-config.yml"]
+    ports:
+      - "3200:3200"
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    volumes:
+      - tempo-data:/data
+      - ./tempo-config.yml:/etc/tempo/tempo-config.yml:ro
+    networks:
+      - pathfinder_network_dev
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    ports:
+      - 1888:1888 # pprof extension
+      - 8888:8888 # Prometheus metrics exposed by the Collector
+      - 9464:9464 # Prometheus exporter metrics
+      - 13133:13133 # health_check extension
+      - 4317:4317 # OTLP gRPC receiver
+      - 4318:4318 # OTLP http receiver
+      - 55679:55679 # zpages extension
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    networks:
+      - pathfinder_network_dev
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - 24318:4318 # OTLP http receiver
+      - "16686:16686" # Jaeger UI
+      - "14250:14250" # Jaeger gRPC receiver (from OTEL Collector)
+      - "6831:6831/udp" # Jaeger UDP receiver (optional)
+    networks:
+      - pathfinder_network_dev
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /data/loki-data && \
+        mkdir -p /data/loki-ruler && \
+        minio server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=loki
+      - MINIO_ROOT_PASSWORD=supersecret
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
+      - MINIO_UPDATE=off
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - minio-data:/data
+    networks:
+      - pathfinder_network_dev
+
+volumes:
+  grafana-data:
+    driver: local
+  loki-data:
+    driver: local
+  tempo-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  minio-data:
+    driver: local

@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  # - job_name: 'dev'
+  #   static_configs:
+  #     - targets: ['<IP_DEV>:9100', '<IP_DEV>:8080'] ### IP NODE EXPORTER Y CADVISOR
+
+  # - job_name: 'pre'
+  #   static_configs:
+  #     - targets: ['<IP_PRE>:9100', '<IP_PRE>:8080'] ### IP NODE EXPORTER Y CADVISOR
+
+  # - job_name: 'pro'
+  #   static_configs:
+  #     - targets: ['<IP_PRO>:9100', '<IP_PRO>:8080'] ### IP NODE EXPORTER Y CADVISOR
+
+  # - job_name: 'rpi'
+  #   static_configs:
+  #     - targets: ['192.168.0.16:9100', '192.168.0.16:8080'] ### IP NODE EXPORTER Y CADVISOR
+ 
+  - job_name: 'monitoring-server'
+    static_configs:
+      - targets: ['node-exporter:9100', 'cadvisor:8080']
+  
+  # - job_name: 'metrics-injector'
+  #   static_configs:
+  #     - targets: ['metrics-injector']

@@ -12,3 +12,6 @@ else
   docker network create "$NETWORK_NAME"
   echo "🎉  Network '$NETWORK_NAME' created successfully."
 fi
+
+# Set permission for loki-data volume
+docker run --rm -v loki-data:/data alpine sh -c "chown -R 10001:10001 /data"

@@ -1,0 +1,40 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+
+exporters:
+  debug:
+    verbosity: detailed
+  otlp/jaeger: # Jaeger supports OTLP directly
+    endpoint: jaeger:4317
+    tls: 
+      insecure: true
+  otlp:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+  prometheus:
+    endpoint: "0.0.0.0:9464" # Expose metrics for Prometheus
+
+service:
+  extensions: [health_check, pprof, zpages]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [otlp, otlp/jaeger]
+    metrics:
+      receivers: [otlp]
+      exporters: [prometheus, debug]
+    # logs:
+    #   receivers: [otlp]
+    #   exporters: [debug]
+
+extensions:
+  health_check:
+  pprof:
+  zpages:

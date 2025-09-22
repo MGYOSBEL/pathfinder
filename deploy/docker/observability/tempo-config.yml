@@ -1,0 +1,44 @@
+auth_enabled: false
+
+server:
+  http_listen_port: 3200
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        http:
+          endpoint: 0.0.0.0:4318
+        grpc:
+          endpoint: 0.0.0.0:4317
+    jaeger:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:14250
+        thrift_http:
+          endpoint: 0.0.0.0:14268
+        thrift_compact:
+          endpoint: 0.0.0.0:6831
+        thrift_binary:
+          endpoint: 0.0.0.0:6832
+
+ingester:
+  lifecycler:
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /data/tempo/traces
+    # retention:
+    #   period: 4320h ### Retención de 6 meses
+    #   max_bytes: 50GB ### Limitar tamaño de almacenamiento
+
+# block:
+#   retention:
+#     period: 4320h # 6 months
+#     max_bytes: 50GB  

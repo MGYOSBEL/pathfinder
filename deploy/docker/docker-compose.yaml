@@ -1,6 +1,7 @@
 include:
   - ./storage.yaml
   - ./messaging.yaml
+  - ./observability/observability-services.yaml
 
 networks:
   pathfinder_network_dev:

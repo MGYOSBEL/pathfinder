@@ -1,0 +1,78 @@
+auth_enabled: false
+
+compactor:
+  working_directory: /data/loki/compactor
+
+server:
+  http_listen_port: 3100
+
+ingester:
+  lifecycler:
+    join_after: 10s
+    observe_period: 5s
+    ring:
+      replication_factor: 1
+      kvstore:
+        store: inmemory
+    final_sleep: 0s
+  chunk_idle_period: 1m
+  wal:
+    enabled: true
+    dir: /data/loki/wal
+  max_chunk_age: 1m
+  chunk_retain_period: 30s
+  chunk_encoding: snappy
+  chunk_target_size: 1.572864e+06
+  chunk_block_size: 262144
+  flush_op_timeout: 10s
+
+schema_config:
+  configs:
+    - from: 2024-10-24
+      store: tsdb
+      object_store: s3
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  # filesystem:
+  #   directory: /data/loki/chunks
+  #   max_size: 50GB ### Limitar a 50GB de logs
+  tsdb_shipper:
+    active_index_directory: /data/loki/index
+    cache_location: /data/loki/index_cache
+
+common:
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: inmemory
+  replication_factor: 1
+  path_prefix: /data/loki
+  storage:
+    s3:
+      endpoint: minio:9000
+      region: eu-west-1
+      insecure: true
+      bucketnames: loki-data
+      access_key_id: loki
+      secret_access_key: supersecret
+      s3forcepathstyle: true
+
+limits_config:
+  max_cache_freshness_per_query: "10m"
+  reject_old_samples: true
+  reject_old_samples_max_age: 30m
+  ingestion_rate_mb: 10
+  ingestion_burst_size_mb: 20
+  # parallelize queries in 15min intervals
+  split_queries_by_interval: 15m
+  volume_enabled: true
+
+ruler:
+  storage:
+    s3:
+      bucketnames: loki-ruler
+
