@@ -3,6 +3,17 @@ include:
   - ./messaging.yaml
   - ./observability/observability-services.yaml
 
+services:
+  haproxy:
+    image: haproxy:2.6-alpine
+    container_name: haproxy
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - "80:80"
+    networks:
+      - pathfinder_network_dev
+
 networks:
   pathfinder_network_dev:
     driver: bridge

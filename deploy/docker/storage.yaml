@@ -17,6 +17,47 @@ services:
     networks:
       - pathfinder_network_dev
 
+  influxdb:
+    image: influxdb:3-core
+    container_name: influxdb
+    user: "root:root"
+    ports:
+      - 8181:8181
+    command:
+      - influxdb3
+      - serve
+      - --node-id=node0
+      - --object-store=file
+      - --data-dir=/var/lib/influxdb3/data
+      - --plugin-dir=/var/lib/influxdb3/plugins
+    volumes:
+      - influxdb-data:/var/lib/influxdb3/data
+      - influxdb-plugins:/var/lib/influxdb3/plugins
+    networks:
+      - pathfinder_network_dev
+
+  influxdb-explorer:
+    image: influxdata/influxdb3-ui:1.2.0
+    container_name: influxdb3-explorer
+    command: ["--mode=admin"]
+    ports:
+      - "8080:80"
+    volumes:
+      - influxdb-explorer:/db
+      # - ./config:/app-root/config:ro
+      # - ./ssl:/etc/nginx/ssl:ro
+    # environment:
+    #   SESSION_SECRET_KEY: ${SESSION_SECRET_KEY:-changeme123456789012345678901234}
+    restart: unless-stopped
+    networks:
+      - pathfinder_network_dev
+
 volumes:
   timescaledb-data:
+    driver: local
+  influxdb-data:
+    driver: local
+  influxdb-plugins:
+    driver: local
+  influxdb-explorer:
     driver: local

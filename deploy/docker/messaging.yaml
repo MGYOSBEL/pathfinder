@@ -8,3 +8,22 @@ services:
     restart: unless-stopped
     networks:
       - pathfinder_network_dev
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672" # AMQP
+      - "15672:15672" # Management UI
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - pathfinder_network_dev
+
+volumes:
+  rabbitmq_data:
+    driver: local
