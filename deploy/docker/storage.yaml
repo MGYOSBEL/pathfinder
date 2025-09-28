@@ -38,19 +38,32 @@ services:
 
   influxdb-explorer:
     image: influxdata/influxdb3-ui:1.2.0
-    container_name: influxdb3-explorer
+    container_name: influxdb-explorer
     command: ["--mode=admin"]
     ports:
-      - "8080:80"
+      - "8090:80"
     volumes:
-      - influxdb-explorer:/db
+      - ./influxdb-explorer:/db
       # - ./config:/app-root/config:ro
       # - ./ssl:/etc/nginx/ssl:ro
-    # environment:
-    #   SESSION_SECRET_KEY: ${SESSION_SECRET_KEY:-changeme123456789012345678901234}
+    configs:
+      - source: influxdb-explorer
+        target: /app-root/config/config.json
+    environment:
+      SESSION_SECRET_KEY: ${SESSION_SECRET_KEY}
     restart: unless-stopped
     networks:
       - pathfinder_network_dev
+
+configs:
+  influxdb-explorer:
+    content: |
+      {
+        "DEFAULT_INFLUX_SERVER": "http://influxdb:8181",
+        "DEFAULT_INFLUX_DATABASE": "data",
+        "DEFAULT_API_TOKEN": "${INFLUXDB_ADMIN_TOKEN}",
+        "DEFAULT_SERVER_NAME": "pathfinder-demo"
+      }
 
 volumes:
   timescaledb-data:

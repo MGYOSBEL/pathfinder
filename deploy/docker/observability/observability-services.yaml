@@ -146,6 +146,97 @@ services:
     networks:
       - pathfinder_network_dev
 
+  #########################
+  # Client collector agents
+  #########################
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node-exporter
+    restart: always
+    # network_mode: host
+    pid: host
+    ports:
+      - "9100:9100"
+    volumes:
+      - /:/host:ro,rslave
+    command:
+      - "--path.rootfs=/host"
+    networks:
+      - pathfinder_network_dev
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor
+    container_name: cadvisor
+    command:
+      - "--docker_only=true"
+      - "--housekeeping_interval=30s"
+      # - "--disable_metrics=accelerator,cpu_topology,disk,memory_numa,tcp,udp,percpu,sched,process,hugetlb,referenced_memory,resctrl,cpuset,advtcp,memory_numa"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+      - /etc/machine-id:/etc/machine-id:ro
+    ports:
+      - "8080:8080"
+    devices:
+      - /dev/kmsg
+    restart: unless-stopped
+    networks:
+      - pathfinder_network_dev
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      # - /var/log:/var/log
+      # - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      # - /etc/machine-id:/etc/machine-id:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - "-config.file=/etc/promtail/config.yml"
+    configs:
+      - source: promtail_config
+        target: /etc/promtail/config.yml
+    restart: unless-stopped
+    networks:
+      - pathfinder_network_dev
+
+configs:
+  promtail_config:
+    content: |
+      server:
+        http_listen_port: 9080
+        grpc_listen_port: 0
+
+      positions:
+        filename: /tmp/positions.yaml
+
+      clients:
+        - url: http://loki:3100/loki/api/v1/push
+
+      scrape_configs:
+        - job_name: system
+          static_configs:
+            - targets:
+                - localhost
+              labels:
+                job: varlogs
+                __path__: /var/log/*log
+
+        - job_name: containers
+          docker_sd_configs:
+            - host: unix:///var/run/docker.sock
+          relabel_configs:
+            - source_labels: ['__meta_docker_container_name']
+              regex: '/(.*)'
+              target_label: 'container'
+            - source_labels: ['__meta_docker_container_image']
+              target_label: 'image'
+            - source_labels: ['__meta_docker_container_id']
+              target_label: 'container_id'
+
 volumes:
   grafana-data:
     driver: local

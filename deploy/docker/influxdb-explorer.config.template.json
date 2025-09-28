@@ -1,0 +1,6 @@
+{
+  "DEFAULT_INFLUX_SERVER": "http://influxdb:8181",
+  "DEFAULT_INFLUX_DATABASE": "data",
+  "DEFAULT_API_TOKEN": "${INFLUXDB_ADMIN_TOKEN}",
+  "DEFAULT_SERVER_NAME": "pathfinder"
+}

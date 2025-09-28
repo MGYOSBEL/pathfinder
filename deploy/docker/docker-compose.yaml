@@ -7,13 +7,30 @@ services:
   haproxy:
     image: haproxy:2.6-alpine
     container_name: haproxy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # command: ["haproxy", "-f", "/usr/local/etc/haproxy/haproxy.cfg", "-db"]
     volumes:
       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     ports:
       - "80:80"
+      - "8404:8404"
+    depends_on:
+      - influxdb-explorer
+      - minio
+      - grafana
+      - rabbitmq
+      - prometheus
+      - jaeger
     networks:
       - pathfinder_network_dev
+      - pathfinder_frontend_network_dev
 
 networks:
   pathfinder_network_dev:
+    driver: bridge
+  pathfinder_frontend_network_dev:
     driver: bridge
