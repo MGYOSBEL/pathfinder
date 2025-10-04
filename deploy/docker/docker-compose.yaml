@@ -2,6 +2,7 @@ include:
   - ./storage.yaml
   - ./messaging.yaml
   - ./observability/observability-services.yaml
+  - ./data-processors.yaml
 
 services:
   haproxy:

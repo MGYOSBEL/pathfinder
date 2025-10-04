@@ -2,26 +2,32 @@ global:
   scrape_interval: 15s
 
 scrape_configs:
-  # - job_name: 'dev'
-  #   static_configs:
-  #     - targets: ['<IP_DEV>:9100', '<IP_DEV>:8080'] ### IP NODE EXPORTER Y CADVISOR
-
-  # - job_name: 'pre'
-  #   static_configs:
-  #     - targets: ['<IP_PRE>:9100', '<IP_PRE>:8080'] ### IP NODE EXPORTER Y CADVISOR
-
-  # - job_name: 'pro'
-  #   static_configs:
-  #     - targets: ['<IP_PRO>:9100', '<IP_PRO>:8080'] ### IP NODE EXPORTER Y CADVISOR
-
-  # - job_name: 'rpi'
-  #   static_configs:
-  #     - targets: ['192.168.0.16:9100', '192.168.0.16:8080'] ### IP NODE EXPORTER Y CADVISOR
- 
-  - job_name: 'monitoring-server'
+  ############################### DEV ###################################
+  - job_name: "pathfinder-dev"
     static_configs:
-      - targets: ['node-exporter:9100', 'cadvisor:8080']
-  
-  # - job_name: 'metrics-injector'
-  #   static_configs:
-  #     - targets: ['metrics-injector']
+      - targets:
+          - "node-exporter:9100"
+          - "cadvisor:8080"
+          - "rabbitmq:15692"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: "environment"
+        replacement: "pathfinder-dev"
+      - source_labels: [__address__]
+        target_label: host
+        replacement: "pathfinder-dev"
+
+  - job_name: "rabbitmq-detailed-pathfinder-dev"
+    metrics_path: "/metrics/per-object"
+    params:
+      family: ["queue_coarse_metrics"]
+    static_configs:
+      - targets:
+          - "rabbitmq:15692"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: "environment"
+        replacement: "pathfinder-dev"
+      - source_labels: [__address__]
+        target_label: host
+        replacement: "pathfinder-dev"

@@ -1,0 +1,22 @@
+input:
+  generate:
+    interval: 1s
+    mapping: |
+      let temp = random_int(min: 10, max: 40) + (1 / random_int(min:1, max: 10))
+      root = {
+      "name": "temperature",
+      "value": $temp,
+      "unit": "C"
+      }
+
+output:
+  mqtt:
+    urls: ['${MQTT_PUBLISH_URL:localhost:1883}']
+    client_id: ""
+    connect_timeout: 30s
+    topic: ${MQTT_PUBLISH_TOPIC:/}
+    # topic: "home/garden/station/1/environment"
+    qos: ${MQTT_PUBLISH_QOS:1}
+    write_timeout: 3s
+    retained: false
+    max_in_flight: 64
