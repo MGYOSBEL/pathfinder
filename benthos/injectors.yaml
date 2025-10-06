@@ -1,0 +1,54 @@
+input:
+  mqtt:
+    urls:
+      - "${MQTT_SUBSCRIBE_URL:localhost:1883}"
+    client_id: "mqtt-injector-${uuid_v7()}"
+    connect_timeout: 30s
+    topics:
+      - "${MQTT_SUBSCRIBE_TOPIC:/}"
+    auto_replay_nacks: true
+
+pipeline:
+  processors:
+    - log:
+        level: INFO
+        message: "message published"
+        fields_mapping: |
+          # root.id = this.id
+          root.mqtt_topic = meta("mqtt_topic")
+    - mapping: |
+        let topic = meta("mqtt_topic")
+        let topic_array = $topic.split("/")
+        root.topic = $topic
+        root.plant = $topic_array.index(0)
+        root.line = $topic_array.index(1)
+        root.cell = $topic_array.index(2) + "/" + $topic_array.index(3)
+        root.measurement = $topic_array.index(4)
+        root.variable = this.name
+        root.value = this.value
+        root.unit = this.unit
+        root.timestamp = now().ts_format()
+
+output:
+  # mqtt:
+  #   urls: ["${MQTT_PUBLISH_URL:localhost:1883}"]
+  #   client_id: ""
+  #   connect_timeout: 30s
+  #   topic: ${MQTT_PUBLISH_TOPIC:/}
+  #   # topic: "home/garden/station/1/environment"
+  #   qos: ${MQTT_SUBSCRIBE_QOS:1}
+  #   write_timeout: 3s
+  #   retained: false
+  #   max_in_flight: 64# All configuration fields, showing default values
+  #
+  amqp_0_9:
+    urls: ["${RABBITMQ_PUBLISH_URL:localhost:5672}"]
+    exchange: "data"
+    exchange_declare:
+      enabled: true
+      type: topic
+      durable: true
+    key: ${! metadata("mqtt_topic").split("/").join(".")}
+    content_type: application/json
+    max_in_flight: 64
+    persistent: true

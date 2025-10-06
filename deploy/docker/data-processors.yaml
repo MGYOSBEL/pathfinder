@@ -1,16 +1,20 @@
 services:
-  data-generator:
+  mqtt-injector:
     image: ghcr.io/redpanda-data/connect
-    container_name: data-generator
+    container_name: mqtt-injector
     command: ["-w", "-c", "/connect.yaml"]
     volumes:
-      - ../../benthos/generator.yaml:/connect.yaml
+      - ../../benthos/injectors.yaml:/connect.yaml
     networks:
       - pathfinder_network_dev
     environment:
       MQTT_PUBLISH_URL: "hivemq:1883"
-      MQTT_PUBLISH_TOPIC: /home/garden/station/1/environment
+      MQTT_PUBLISH_TOPIC: processed/data
       MQTT_PUBLISH_QOS: 1
+      MQTT_SUBSCRIBE_URL: "hivemq:1883"
+      MQTT_SUBSCRIBE_TOPIC: "home/#"
+      MQTT_SUBSCRIBE_QOS: 1
+      RABBITMQ_PUBLISH_URL: "amqp://user:password@rabbitmq:5672"
     deploy:
       resources:
         limits:
