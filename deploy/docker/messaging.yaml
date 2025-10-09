@@ -17,8 +17,8 @@ services:
       - "15672:15672" # Management UI
     restart: unless-stopped
     environment:
-      RABBITMQ_DEFAULT_USER: user
-      RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_ADMIN_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_ADMIN_PASSWORD}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:

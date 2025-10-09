@@ -1,4 +1,3 @@
-
 services:
   generator-garden-station-1:
     image: ghcr.io/redpanda-data/connect
@@ -8,6 +7,7 @@ services:
     networks:
       - pathfinder_network_dev
     environment:
+      GENERATOR_INTERVAL: 3s
       MQTT_PUBLISH_URL: "hivemq:1883"
       MQTT_PUBLISH_TOPIC: home/garden/station/1/environment
       MQTT_PUBLISH_QOS: 1
@@ -26,6 +26,7 @@ services:
     networks:
       - pathfinder_network_dev
     environment:
+      GENERATOR_INTERVAL: 5s
       MQTT_PUBLISH_URL: "hivemq:1883"
       MQTT_PUBLISH_TOPIC: home/garden/station/2/environment
       MQTT_PUBLISH_QOS: 1

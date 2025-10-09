@@ -5,7 +5,7 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD}
       - TIMESCALEDB_TELEMETRY=on # Disable telemetry
       - TS_TUNE_MEMORY=4GB # Set available memory for tuning
       - TS_TUNE_NUM_CPUS=4 # Set number of CPUs for tuning

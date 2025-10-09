@@ -1,6 +1,6 @@
 input:
   generate:
-    interval: 1s
+    interval: ${GENERATOR_INTERVAL:1s}
     mapping: |
       let temp = random_int(min: 10, max: 40) + (1 / random_int(min:1, max: 10))
       root = {
@@ -11,7 +11,7 @@ input:
 
 output:
   mqtt:
-    urls: ['${MQTT_PUBLISH_URL:localhost:1883}']
+    urls: ["${MQTT_PUBLISH_URL:localhost:1883}"]
     client_id: ""
     connect_timeout: 30s
     topic: ${MQTT_PUBLISH_TOPIC:/}

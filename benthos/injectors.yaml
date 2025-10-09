@@ -30,17 +30,6 @@ pipeline:
         root.timestamp = now().ts_format()
 
 output:
-  # mqtt:
-  #   urls: ["${MQTT_PUBLISH_URL:localhost:1883}"]
-  #   client_id: ""
-  #   connect_timeout: 30s
-  #   topic: ${MQTT_PUBLISH_TOPIC:/}
-  #   # topic: "home/garden/station/1/environment"
-  #   qos: ${MQTT_SUBSCRIBE_QOS:1}
-  #   write_timeout: 3s
-  #   retained: false
-  #   max_in_flight: 64# All configuration fields, showing default values
-  #
   amqp_0_9:
     urls: ["${RABBITMQ_PUBLISH_URL:localhost:5672}"]
     exchange: "data"
