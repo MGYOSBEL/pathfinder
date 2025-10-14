@@ -24,3 +24,4 @@ go.work.sum
 # env file
 .env
 deploy/docker/secrets
+deploy/docker/influxdb-explorer
