@@ -7,8 +7,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/MGYOSBEL/pathfinder/internal/message"
-	"github.com/MGYOSBEL/pathfinder/internal/mqtt"
+	"github.com/MGYOSBEL/pathfinder/internal/processor"
+	"github.com/MGYOSBEL/pathfinder/pkg/mqtt"
 )
 
 // TODO:
@@ -42,10 +42,13 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 	}
 	defer client.Disconnect()
 
-	client.Subscribe(func(message message.Message) {
-		fmt.Printf("%s\n", message.Payload)
-		client.Publish(fmt.Sprintf("processed/%s", message.Topic), message.Payload)
+	p := processor.New(client, client, processor.Options{
+		InputTopic:  "home/#",
+		OutputTopic: "forwarded",
 	})
+	p.Process()
+
+	// TODO: Process here
 
 	// Wait for cancel
 	<-ctx.Done()

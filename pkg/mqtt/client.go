@@ -1,8 +1,8 @@
 package mqtt
 
 import (
-	"github.com/MGYOSBEL/pathfinder/internal/message"
-	"github.com/MGYOSBEL/pathfinder/internal/pubsub"
+	"github.com/MGYOSBEL/pathfinder/pkg/message"
+	"github.com/MGYOSBEL/pathfinder/pkg/pubsub"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
 
@@ -47,8 +47,8 @@ func (c *MqttClient) Subscribe(h pubsub.Handler) error {
 	return token.Error()
 }
 
-func (c *MqttClient) Publish(topic string, m any) error {
-	token := c.client.Publish(topic, c.options.QoS, false, m)
+func (c *MqttClient) Publish(topic string, m message.Message) error {
+	token := c.client.Publish(topic, c.options.QoS, false, m.Payload)
 	token.Wait()
 	return token.Error()
 }
