@@ -41,6 +41,12 @@ func (c *MqttClient) Subscribe(h Handler) error {
 	return token.Error()
 }
 
+func (c *MqttClient) Publish(topic string, m any) error {
+	token := c.client.Publish(topic, c.options.QoS, false, m)
+	token.Wait()
+	return token.Error()
+}
+
 func (c *MqttClient) Disconnect() {
 	c.client.Disconnect(100)
 }
