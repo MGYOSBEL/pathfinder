@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/MGYOSBEL/pathfinder/internal/message"
 	"github.com/MGYOSBEL/pathfinder/internal/mqtt"
 )
 
@@ -31,8 +32,8 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 
 	fmt.Println("Hello Mars!!!")
 	opts := mqtt.Options{
-		Server: "192.168.0.16:1883",
-		Topic:  "#",
+		Server: "localhost:1883",
+		Topic:  "home/#",
 		QoS:    0,
 	}
 	client := mqtt.NewClient(opts)
@@ -41,8 +42,9 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 	}
 	defer client.Disconnect()
 
-	client.Subscribe(func(message []byte) {
-		fmt.Printf("%s\n", message)
+	client.Subscribe(func(message message.Message) {
+		fmt.Printf("%s\n", message.Payload)
+		client.Publish(fmt.Sprintf("processed/%s", message.Topic), message.Payload)
 	})
 
 	// Wait for cancel

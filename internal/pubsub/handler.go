@@ -1,3 +1,5 @@
 package pubsub
 
-type Handler func(payload []byte)
+import "github.com/MGYOSBEL/pathfinder/internal/message"
+
+type Handler func(m message.Message)

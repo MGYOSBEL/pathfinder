@@ -1,6 +1,8 @@
 package mqtt
 
 import (
+	"github.com/MGYOSBEL/pathfinder/internal/message"
+	"github.com/MGYOSBEL/pathfinder/internal/pubsub"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
 
@@ -14,8 +16,6 @@ type MqttClient struct {
 	options Options
 	client  MQTT.Client
 }
-
-type Handler func(payload []byte)
 
 func NewClient(o Options) *MqttClient {
 	opts := MQTT.NewClientOptions().AddBroker(o.Server)
@@ -33,9 +33,15 @@ func (c *MqttClient) Connect() error {
 	return nil
 }
 
-func (c *MqttClient) Subscribe(h Handler) error {
+func (c *MqttClient) Subscribe(h pubsub.Handler) error {
 	token := c.client.Subscribe(c.options.Topic, c.options.QoS, func(cl MQTT.Client, m MQTT.Message) {
-		h(m.Payload())
+		msg := message.Message{
+			Payload: m.Payload(),
+			Metadata: message.Metadata{
+				Topic: m.Topic(),
+			},
+		}
+		h(msg)
 	})
 	token.Wait()
 	return token.Error()
