@@ -48,8 +48,6 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 	})
 	p.Process()
 
-	// TODO: Process here
-
 	// Wait for cancel
 	<-ctx.Done()
 	return nil

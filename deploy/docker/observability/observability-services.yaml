@@ -12,10 +12,12 @@ services:
         max-file: "3"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus-data:/prometheus
+      # - prometheus-data:/prometheus
+    tmpfs:
+      - /prometheus:uid=65534,gid=65534,mode=0755,size=1g
     command:
-      - "--storage.tsdb.retention.time=180d" ### Mantener datos 6 meses
-      - "--storage.tsdb.retention.size=50GB" ### Limitar el tamaño total a 50GB
+      - "--storage.tsdb.retention.time=7d" ### Mantener datos 6 meses
+      - "--storage.tsdb.retention.size=1GB" ### Limitar el tamaño total a 50GB
       - "--storage.tsdb.path=/prometheus" ### Ruta de almacenamiento
       - "--config.file=/etc/prometheus/prometheus.yml" ### Ruta de config
     networks:
@@ -67,8 +69,10 @@ services:
         max-size: "100m"
         max-file: "3"
     volumes:
-      - loki-data:/data/loki
+      # - loki-data:/data/loki
       - ./loki-config.yml:/etc/loki/loki-config.yml:ro
+    tmpfs:
+      - /data:size=500m
     command:
       - "--config.file=/etc/loki/loki-config.yml"
       - "--target=all"
@@ -92,8 +96,10 @@ services:
         max-size: "100m"
         max-file: "3"
     volumes:
-      - tempo-data:/data
+      # - tempo-data:/data
       - ./tempo-config.yml:/etc/tempo/tempo-config.yml:ro
+    tmpfs:
+      - /data:size=500m
     networks:
       - pathfinder_network_dev
 
@@ -143,8 +149,10 @@ services:
     ports:
       - 9000:9000
       - 9001:9001
-    volumes:
-      - minio-data:/data
+    # volumes:
+    #   - minio-data:/data
+    tmpfs:
+      - /data:size=500m
     networks:
       - pathfinder_network_dev
 

@@ -34,8 +34,8 @@ services:
     environment:
       RABBITMQ_SUBSCRIBE_URL: "amqp://${RABBITMQ_ADMIN_USER}:${RABBITMQ_ADMIN_PASSWORD}@rabbitmq:5672"
       RABBITMQ_SUBSCRIBE_QUEUE: timescale-writer
-      TIMESCALE_USER: postgres
-      TIMESCALE_ADMIN_PASSWORD: ${POSTGRES_ADMIN_PASSWORD}
+      TIMESCALE_USER: tsdbadmin
+      TIMESCALE_ADMIN_PASSWORD: ${TIMESCALE_ADMIN_PASSWORD}
     deploy:
       resources:
         limits:

@@ -1,6 +1,6 @@
 services:
   hivemq:
-    image: hivemq/hivemq-edge
+    image: hivemq/hivemq4
     ports:
       - "1883:1883"
       - "8083:8080"

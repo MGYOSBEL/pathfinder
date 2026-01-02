@@ -16,7 +16,8 @@ output:
   label: "timescale"
   sql_insert:
     driver: postgres
-    dsn: postgres://${TIMESCALE_USER}:${TIMESCALE_ADMIN_PASSWORD}@timescale:5432/postgres?sslmode=disable
+    # dsn: postgres://${TIMESCALE_USER}:${TIMESCALE_ADMIN_PASSWORD}@timescale:5432/postgres?sslmode=disable
+    dsn: postgres://${TIMESCALE_USER}:${TIMESCALE_ADMIN_PASSWORD}@fgvhsl1gvg.reyh6mq6v0.tsdb.cloud.timescale.com:33462/tsdb?sslmode=require
     table: metrics_data
     columns:
       [topic, plant, line, cell, measurement, variable, value, unit, timestamp]
