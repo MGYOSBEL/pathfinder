@@ -1,0 +1,10 @@
+services:
+  mqtt-broker:
+    image: vernemq/vernemq
+    ports:
+      - "1883:1883"
+      - "8083:8888"
+    container_name: vernemq
+    environment:
+      DOCKER_VERNEMQ_ALLOW_ANONYMOUS: on
+      DOCKER_VERNEMQ_ACCEPT_EULA: yes

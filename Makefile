@@ -5,8 +5,12 @@ COMPOSE_FILES := \
 		-f deploy/docker/docker-compose.yaml \
 		-f deploy/docker/mqtt/$(MQTT_BROKER).yaml \
 
-run-metrics-injector:
-	go run cmd/metrics-injector/main.go
+# Validations
+VALID_MQTT_BROKERS := hivemq vernemq
+
+ifneq ($(filter $(MQTT_BROKER),$(VALID_MQTT_BROKERS)),$(MQTT_BROKER))
+$(error Invalid MQTT_BROKER '$(MQTT_BROKER)'. Valid: $(VALID_MQTT_BROKERS))
+endif
 
 .PHONY: deploy
 deploy:

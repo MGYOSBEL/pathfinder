@@ -1,6 +1,6 @@
 services:
   mqtt-broker:
-    container_name: hivemq-edge
+    image: scratch
     restart: unless-stopped
     networks:
       - pathfinder_network_dev
