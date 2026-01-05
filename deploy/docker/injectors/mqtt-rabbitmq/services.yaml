@@ -1,0 +1,16 @@
+services:
+  data-injector:
+    image: ghcr.io/redpanda-data/connect
+    container_name: mqtt-rabbit-injector
+    command: ["-w", "-c", "/connect.yaml"]
+    volumes:
+      ## The route is relative to the file that merge this one
+      - ./injectors/mqtt-rabbitmq/config.yaml:/connect.yaml
+    environment:
+      MQTT_PUBLISH_URL: "mqtt-broker:1883"
+      MQTT_PUBLISH_TOPIC: processed/data
+      MQTT_PUBLISH_QOS: 1
+      MQTT_SUBSCRIBE_URL: "mqtt-broker:1883"
+      MQTT_SUBSCRIBE_TOPIC: "home/#"
+      MQTT_SUBSCRIBE_QOS: 1
+      RABBITMQ_PUBLISH_URL: "amqp://${RABBITMQ_ADMIN_USER}:${RABBITMQ_ADMIN_PASSWORD}@broker:5672"

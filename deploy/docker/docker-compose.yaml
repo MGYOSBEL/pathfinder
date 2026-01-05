@@ -21,7 +21,6 @@ services:
       - "80:80"
       - "8404:8404"
     depends_on:
-      - influxdb-explorer
       - minio
       - grafana
       - broker

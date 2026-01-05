@@ -1,15 +1,19 @@
 # Services
 MQTT_BROKER ?= hivemq
 BROKER ?= rabbitmq
+TIMESERIES_DB ?= timescale
 
 COMPOSE_FILES := \
 		-f deploy/docker/docker-compose.yaml \
 		-f deploy/docker/mqtt/$(MQTT_BROKER).yaml \
+		-f deploy/docker/injectors/mqtt-$(BROKER)/services.yaml \
 		-f deploy/docker/broker/$(BROKER).yaml \
+		-f deploy/docker/writers/$(BROKER)/$(TIMESERIES_DB)/services.yaml \
 
 # Validations
 VALID_MQTT_BROKERS := hivemq vernemq
 VALID_BROKERS := rabbitmq
+VALID_TIMESERIES_DB := timescale influxdb
 
 ifneq ($(filter $(MQTT_BROKER),$(VALID_MQTT_BROKERS)),$(MQTT_BROKER))
 $(error Invalid MQTT_BROKER '$(MQTT_BROKER)'. Valid: $(VALID_MQTT_BROKERS))
@@ -17,6 +21,10 @@ endif
 
 ifneq ($(filter $(BROKER),$(VALID_BROKERS)),$(BROKER))
 $(error Invalid BROKER '$(BROKER)'. Valid: $(VALID_BROKERS))
+endif
+
+ifneq ($(filter $(TIMESERIES_DB),$(VALID_TIMESERIES_DB)),$(TIMESERIES_DB))
+$(error Invalid TIMESERIES_DB '$(TIMESERIES_DB)'. Valid: $(VALID_TIMESERIES_DB))
 endif
 
 .PHONY: deploy

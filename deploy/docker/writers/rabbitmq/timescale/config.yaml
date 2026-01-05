@@ -1,0 +1,40 @@
+input:
+  label: "rabbitmq"
+  amqp_0_9:
+    urls: ["${RABBITMQ_SUBSCRIBE_URL:localhost:5672}"]
+    queue: "${RABBITMQ_SUBSCRIBE_QUEUE}"
+    queue_declare:
+      enabled: true
+      durable: true
+      auto_delete: false
+    bindings_declare:
+      - exchange: "data"
+        key: "#"
+    auto_ack: false
+
+output:
+  label: "timescale"
+  sql_insert:
+    driver: postgres
+    # dsn: postgres://${TIMESCALE_USER}:${TIMESCALE_ADMIN_PASSWORD}@timescale:5432/postgres?sslmode=disable
+    dsn: postgres://${TIMESCALE_USER}:${TIMESCALE_ADMIN_PASSWORD}@fgvhsl1gvg.reyh6mq6v0.tsdb.cloud.timescale.com:33462/tsdb?sslmode=require
+    table: metrics_data
+    columns:
+      [topic, plant, line, cell, measurement, variable, value, unit, timestamp]
+    args_mapping: |
+      let topic = meta("mqtt_topic")
+      let topic_array = $topic.split("/")
+      root = [
+        this.topic,
+        this.plant,
+        this.line,
+        this.cell,
+        this.measurement,
+        this.variable,
+        this.value,
+        this.unit,
+        this.timestamp
+      ]
+    max_in_flight: 64
+    init_files:
+      - ./init_metrics_table.sql

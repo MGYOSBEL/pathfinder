@@ -1,0 +1,12 @@
+services:
+  timeseries-writer:
+    image: ghcr.io/redpanda-data/connect
+    container_name: rabbitmq-influx-writer
+    command: ["-w", "-c", "/connect.yaml"]
+    volumes:
+      - ./writers/rabbitmq/influxdb/config.yaml:/connect.yaml
+    environment:
+      RABBITMQ_SUBSCRIBE_URL: "amqp://${RABBITMQ_ADMIN_USER}:${RABBITMQ_ADMIN_PASSWORD}@broker:5672"
+      RABBITMQ_SUBSCRIBE_QUEUE: influx-writer
+      INFLUXDB_WRITE_URL: "influxdb:8181"
+      INFLUXDB_WRITE_TOKEN: ${INFLUXDB_WRITE_TOKEN}
