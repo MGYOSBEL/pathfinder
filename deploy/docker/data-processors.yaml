@@ -14,7 +14,7 @@ services:
       MQTT_SUBSCRIBE_URL: "mqtt-broker:1883"
       MQTT_SUBSCRIBE_TOPIC: "home/#"
       MQTT_SUBSCRIBE_QOS: 1
-      RABBITMQ_PUBLISH_URL: "amqp://${RABBITMQ_ADMIN_USER}:${RABBITMQ_ADMIN_PASSWORD}@rabbitmq:5672"
+      RABBITMQ_PUBLISH_URL: "amqp://${RABBITMQ_ADMIN_USER}:${RABBITMQ_ADMIN_PASSWORD}@broker:5672"
     deploy:
       resources:
         limits:
@@ -32,7 +32,7 @@ services:
     networks:
       - pathfinder_network_dev
     environment:
-      RABBITMQ_SUBSCRIBE_URL: "amqp://${RABBITMQ_ADMIN_USER}:${RABBITMQ_ADMIN_PASSWORD}@rabbitmq:5672"
+      RABBITMQ_SUBSCRIBE_URL: "amqp://${RABBITMQ_ADMIN_USER}:${RABBITMQ_ADMIN_PASSWORD}@broker:5672"
       RABBITMQ_SUBSCRIBE_QUEUE: timescale-writer
       TIMESCALE_USER: tsdbadmin
       TIMESCALE_ADMIN_PASSWORD: ${TIMESCALE_ADMIN_PASSWORD}
@@ -52,7 +52,7 @@ services:
     networks:
       - pathfinder_network_dev
     environment:
-      RABBITMQ_SUBSCRIBE_URL: "amqp://${RABBITMQ_ADMIN_USER}:${RABBITMQ_ADMIN_PASSWORD}@rabbitmq:5672"
+      RABBITMQ_SUBSCRIBE_URL: "amqp://${RABBITMQ_ADMIN_USER}:${RABBITMQ_ADMIN_PASSWORD}@broker:5672"
       RABBITMQ_SUBSCRIBE_QUEUE: influx-writer
       INFLUXDB_WRITE_URL: "influxdb:8181"
       INFLUXDB_WRITE_TOKEN: ${INFLUXDB_WRITE_TOKEN}

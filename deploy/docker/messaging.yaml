@@ -5,21 +5,8 @@ services:
     networks:
       - pathfinder_network_dev
 
-  rabbitmq:
-    image: rabbitmq:4-management
-    container_name: rabbitmq
-    ports:
-      - "5672:5672" # AMQP
-      - "15672:15672" # Management UI
+  broker:
+    image: scratch
     restart: unless-stopped
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_ADMIN_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_ADMIN_PASSWORD}
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - pathfinder_network_dev
-
-volumes:
-  rabbitmq_data:
-    driver: local
