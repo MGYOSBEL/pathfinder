@@ -4,8 +4,8 @@ services:
     container_name: rabbitmq-timescale-writer
     command: ["-w", "-c", "/connect.yaml"]
     volumes:
-      - ./writers/rabbitmq/timescale/config.yaml:/connect.yaml
-      - ./writers/rabbitmq/timescale/init_metrics_table.sql:/init_metrics_table.sql
+      - ./writers/rabbitmq/timescaledb/config.yaml:/connect.yaml
+      - ./writers/rabbitmq/timescaledb/init_metrics_table.sql:/init_metrics_table.sql
     environment:
       RABBITMQ_SUBSCRIBE_URL: "amqp://${RABBITMQ_ADMIN_USER}:${RABBITMQ_ADMIN_PASSWORD}@broker:5672"
       RABBITMQ_SUBSCRIBE_QUEUE: timescale-writer

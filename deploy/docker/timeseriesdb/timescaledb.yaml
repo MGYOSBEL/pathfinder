@@ -1,0 +1,20 @@
+services:
+  timeseriesdb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: timescaledb
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD}
+      - TIMESCALEDB_TELEMETRY=on # Disable telemetry
+      - TS_TUNE_MEMORY=4GB # Set available memory for tuning
+      - TS_TUNE_NUM_CPUS=4 # Set number of CPUs for tuning
+      - TS_TUNE_MAX_BG_WORKERS=16 # Set maximum number of background workers
+      - TS_TUNE_MAX_CONNS=200 # Set maximum number of connections
+      - NO_TS_TUNE=false # Run timescaledb-tune (set to true to disable tuning)
+    volumes:
+      - timescaledb-data:/var/lib/postgresql/data # Persist data to a named volume
+
+volumes:
+  timescaledb-data:
+    driver: local
