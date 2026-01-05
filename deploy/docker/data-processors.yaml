@@ -8,10 +8,10 @@ services:
     networks:
       - pathfinder_network_dev
     environment:
-      MQTT_PUBLISH_URL: "hivemq:1883"
+      MQTT_PUBLISH_URL: "mqtt-broker:1883"
       MQTT_PUBLISH_TOPIC: processed/data
       MQTT_PUBLISH_QOS: 1
-      MQTT_SUBSCRIBE_URL: "hivemq:1883"
+      MQTT_SUBSCRIBE_URL: "mqtt-broker:1883"
       MQTT_SUBSCRIBE_TOPIC: "home/#"
       MQTT_SUBSCRIBE_QOS: 1
       RABBITMQ_PUBLISH_URL: "amqp://${RABBITMQ_ADMIN_USER}:${RABBITMQ_ADMIN_PASSWORD}@rabbitmq:5672"
