@@ -38,6 +38,15 @@ services:
     networks:
       - pathfinder_network_dev
 
+  grafana:
+    environment:
+      - GF_FEATURE_TOGGLES_ENABLE=newInfluxDSConfigPageDesign
+      - INFLUXDB_URL=http://influxdb:8181
+      - INFLUXDB_TOKEN=${INFLUXDB_WRITE_TOKEN}
+      - INFLUXDB_DBNAME=raw
+    volumes:
+      - ./observability/grafana/provisioning/datasources/influxdb.yaml:/etc/grafana/provisioning/datasources/influxdb.yaml
+
 configs:
   influxdb-explorer:
     content: |

@@ -1,0 +1,22 @@
+apiVersion: 1
+
+deleteDatasources:
+  - name: InfluxDB_v3 [provisioned]
+    orgId: 1
+
+# Mark provisioned data sources for deletion if they are no longer in a provisioning file.
+# It takes no effect if data sources are already listed in the deleteDatasources section.
+prune: true
+
+datasources:
+  - name: InfluxDB_v3 [provisioned]
+    type: influxdb
+    access: proxy
+    url: ${INFLUXDB_URL}
+    jsonData:
+      version: SQL
+      dbName: ${INFLUXDB_DBNAME}
+      httpMode: POST
+      insecureGrpc: true
+    secureJsonData:
+      token: ${INFLUXDB_TOKEN}
