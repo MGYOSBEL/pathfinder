@@ -11,6 +11,7 @@ prune: true
 datasources:
   - name: TIMESCALEDB [provisioned]
     type: postgres
+    uid: timescaledb
     url: ${TIMESCALE_URL}
     user: ${TIMESCALE_USER}
     secureJsonData:

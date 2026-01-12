@@ -11,6 +11,7 @@ prune: true
 datasources:
   - name: InfluxDB_v3 [provisioned]
     type: influxdb
+    uid: influxdb
     access: proxy
     url: ${INFLUXDB_URL}
     jsonData:
