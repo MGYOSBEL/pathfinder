@@ -23,6 +23,7 @@ services:
       - TIMESCALE_DBNAME=${TIMESCALE_DBNAME}
     volumes:
       - ./observability/grafana/provisioning/datasources/timescaledb.yaml:/etc/grafana/provisioning/datasources/timescaledb.yaml
+      - ./observability/grafana/provisioning/dashboards/DATA/timescaledb:/etc/grafana/provisioning/dashboards/DATA
 
 volumes:
   timescaledb-data:
