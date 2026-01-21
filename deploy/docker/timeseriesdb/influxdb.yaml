@@ -46,6 +46,7 @@ services:
       - INFLUXDB_DBNAME=raw
     volumes:
       - ./observability/grafana/provisioning/datasources/influxdb.yaml:/etc/grafana/provisioning/datasources/influxdb.yaml
+      - ./observability/grafana/provisioning/dashboards/DATA/influxdb:/etc/grafana/provisioning/dashboards/DATA
 
 configs:
   influxdb-explorer:
