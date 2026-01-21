@@ -168,7 +168,7 @@ services:
     ports:
       - "9100:9100"
     volumes:
-      - /:/host:ro,rslave
+      - /:/host:ro #,rslave
     command:
       - "--path.rootfs=/host"
     networks:
