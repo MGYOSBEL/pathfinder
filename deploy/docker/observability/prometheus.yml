@@ -9,6 +9,7 @@ scrape_configs:
           - "node-exporter:9100"
           - "cadvisor:8080"
           - "rabbitmq:15692"
+          - "haproxy:8405"
     relabel_configs:
       - source_labels: [__address__]
         target_label: "environment"

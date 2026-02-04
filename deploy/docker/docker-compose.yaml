@@ -19,7 +19,8 @@ services:
       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     ports:
       - "80:80"
-      - "8404:8404"
+      - "8404:8404"   # Stats UI
+      - "8405:8405"   # Prometheus metrics
     depends_on:
       - minio
       - grafana
