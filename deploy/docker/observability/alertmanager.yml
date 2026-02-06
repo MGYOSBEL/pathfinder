@@ -1,0 +1,91 @@
+global:
+  # Global defaults
+  resolve_timeout: 5m
+
+# Alert routing configuration
+route:
+  # Default receiver for all alerts
+  receiver: 'default-receiver'
+  
+  # Group alerts by these labels
+  group_by: ['alertname', 'severity', 'component']
+  
+  # Wait time before sending initial notification
+  group_wait: 30s
+  
+  # Wait time before sending notification about new alerts in same group
+  group_interval: 5m
+  
+  # Wait time before resending notification if alert still firing
+  repeat_interval: 4h
+  
+  # Route alerts based on severity
+  routes:
+    # Critical alerts (P1) - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 10s
+      group_interval: 2m
+      repeat_interval: 30m
+      continue: true  # Also send to default receiver
+    
+    # High severity alerts (P2) - urgent notification
+    - match:
+        severity: high
+      receiver: 'high-severity-alerts'
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 2h
+      continue: true
+    
+    # Medium severity alerts (P3) - standard notification
+    - match:
+        severity: medium
+      receiver: 'medium-severity-alerts'
+      group_wait: 5m
+      group_interval: 10m
+      repeat_interval: 12h
+
+# Inhibition rules - suppress certain alerts when others are firing
+inhibit_rules:
+  # Suppress non-critical alerts if critical alert is firing for same component
+  - source_match:
+      severity: 'critical'
+    target_match_re:
+      severity: 'high|medium'
+    equal: ['component']
+  
+  # Suppress individual service alerts if multiple services are down
+  - source_match:
+      alertname: 'MultipleServicesDown'
+    target_match_re:
+      alertname: '.*Down'
+    equal: ['environment']
+
+# Notification receivers
+receivers:
+  # Default receiver - webhook for logging/auditing
+  - name: 'default-receiver'
+    webhook_configs:
+      - url: 'http://localhost:9093/webhook/default'
+        send_resolved: true
+
+  # Critical alerts
+  # To enable Slack/Email, see ALERTMANAGER-SETUP.md
+  - name: 'critical-alerts'
+    webhook_configs:
+      - url: 'http://localhost:9093/webhook/critical'
+        send_resolved: true
+
+  # High severity alerts
+  - name: 'high-severity-alerts'
+    webhook_configs:
+      - url: 'http://localhost:9093/webhook/high'
+        send_resolved: true
+
+  # Medium severity alerts
+  - name: 'medium-severity-alerts'
+    webhook_configs:
+      - url: 'http://localhost:9093/webhook/medium'
+        send_resolved: true

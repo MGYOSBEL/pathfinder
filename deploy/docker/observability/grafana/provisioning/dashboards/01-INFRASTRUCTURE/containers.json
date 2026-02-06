@@ -2813,6 +2813,10 @@
           "text": "All",
           "value": "$__all"
         },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
         "definition": "label_values(environment)",
         "includeAll": true,
         "multi": true,

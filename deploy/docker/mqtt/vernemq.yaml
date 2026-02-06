@@ -2,9 +2,15 @@ services:
   mqtt-broker:
     image: vernemq/vernemq
     ports:
-      - "1883:1883"
-      - "8083:8888"
+      - "1883:1883" # MQTT
+      - "8083:8888" # HTTP API (/metrics endpoint)
     container_name: vernemq
     environment:
       DOCKER_VERNEMQ_ALLOW_ANONYMOUS: on
       DOCKER_VERNEMQ_ACCEPT_EULA: yes
+    networks:
+      - pathfinder_network_dev
+
+  grafana:
+    volumes:
+      - ./observability/grafana/provisioning/dashboards/02-MESSAGING/vernemq-mqtt-broker.json:/etc/grafana/provisioning/dashboards/02-MESSAGING/vernemq-mqtt-broker.json

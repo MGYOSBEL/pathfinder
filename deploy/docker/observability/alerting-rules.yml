@@ -1,0 +1,396 @@
+groups:
+  - name: service_availability
+    interval: 30s
+    rules:
+      # Critical Service Down Alerts
+      - alert: MQTTBrokerDown
+        expr: up{instance=~"mqtt-broker:.*"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: mqtt
+          slo: availability
+        annotations:
+          summary: "MQTT Broker is down"
+          description: "MQTT broker {{ $labels.instance }} has been down for more than 2 minutes. All data ingestion is blocked."
+          impact: "Critical - No MQTT messages can be ingested"
+          action: "Check MQTT broker container status and logs immediately"
+
+      - alert: DataInjectorDown
+        expr: up{instance="data-injector:4195"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: benthos-injector
+          slo: availability
+        annotations:
+          summary: "Data Injector is down"
+          description: "Benthos data injector has been down for more than 2 minutes. MQTT to RabbitMQ pipeline is broken."
+          impact: "Critical - Pipeline is broken, messages not flowing to RabbitMQ"
+          action: "Check data-injector container status and logs immediately"
+
+      - alert: RabbitMQDown
+        expr: up{instance="rabbitmq:15692"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: rabbitmq
+          slo: availability
+        annotations:
+          summary: "RabbitMQ is down"
+          description: "RabbitMQ message broker has been down for more than 2 minutes."
+          impact: "Critical - Message brokering is unavailable"
+          action: "Check RabbitMQ container status and logs immediately"
+
+      - alert: DataWriterDown
+        expr: up{instance="timeseries-writer:4195"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: benthos-writer
+          slo: availability
+        annotations:
+          summary: "Data Writer is down"
+          description: "Benthos data writer has been down for more than 2 minutes. RabbitMQ to database pipeline is broken."
+          impact: "Critical - Messages not being written to database"
+          action: "Check timeseries-writer container status and logs immediately"
+
+      - alert: TimescaleDBDown
+        expr: up{instance="postgres-exporter:9187"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: timescaledb
+          slo: availability
+        annotations:
+          summary: "TimescaleDB is down"
+          description: "TimescaleDB has been down for more than 2 minutes."
+          impact: "Critical - Data persistence is unavailable"
+          action: "Check TimescaleDB container status and logs immediately"
+
+      - alert: MultipleServicesDown
+        expr: count(up{job="pathfinder-dev"} == 0) >= 3
+        for: 1m
+        labels:
+          severity: critical
+          component: platform
+          slo: availability
+        annotations:
+          summary: "Multiple critical services are down"
+          description: "{{ $value }} services are currently down in the platform."
+          impact: "Critical - Platform-wide outage likely"
+          action: "Check infrastructure health, network connectivity, and system resources"
+
+  - name: performance_degradation
+    interval: 60s
+    rules:
+      # Performance SLO Violations
+      - alert: HighEndToEndLatency
+        expr: |
+          (
+            histogram_quantile(0.99, rate(input_latency_ns_bucket{instance="data-injector:4195"}[5m])) / 1e9 +
+            histogram_quantile(0.99, rate(output_latency_ns_bucket{instance="timeseries-writer:4195"}[5m])) / 1e9
+          ) > 5
+        for: 10m
+        labels:
+          severity: high
+          component: pipeline
+          slo: performance
+        annotations:
+          summary: "End-to-end message processing latency exceeds SLO"
+          description: "P99 latency is {{ $value | humanizeDuration }}, exceeding 5s SLO for 10 minutes."
+          impact: "High - Real-time data freshness degraded"
+          action: "Check pipeline throughput, database performance, and resource utilization"
+
+      - alert: HighDatabaseWriteLatency
+        expr: histogram_quantile(0.99, rate(output_latency_ns_bucket{instance="timeseries-writer:4195"}[5m])) / 1e9 > 2
+        for: 10m
+        labels:
+          severity: high
+          component: timescaledb
+          slo: performance
+        annotations:
+          summary: "Database write latency exceeds SLO"
+          description: "P99 write latency is {{ $value | humanizeDuration }}, exceeding 2s SLO for 10 minutes."
+          impact: "High - Database performance degraded"
+          action: "Check TimescaleDB performance, connection pool, and resource utilization"
+
+      - alert: HighRabbitMQQueueDepth
+        expr: sum(rabbitmq_queue_messages{job="pathfinder-dev"}) > 10000
+        for: 5m
+        labels:
+          severity: high
+          component: rabbitmq
+          slo: performance
+        annotations:
+          summary: "RabbitMQ queue depth critically high"
+          description: "Total queue depth is {{ $value }}, exceeding 10,000 messages for 5 minutes."
+          impact: "High - Backpressure detected, writer may be falling behind"
+          action: "Check data writer performance and database write capacity"
+
+      - alert: RabbitMQQueueGrowing
+        expr: |
+          (
+            sum(rabbitmq_queue_messages{job="pathfinder-dev"}) -
+            sum(rabbitmq_queue_messages{job="pathfinder-dev"} offset 5m)
+          ) > 5000
+        for: 5m
+        labels:
+          severity: medium
+          component: rabbitmq
+          slo: performance
+        annotations:
+          summary: "RabbitMQ queue depth growing rapidly"
+          description: "Queue depth increased by {{ $value }} messages in last 5 minutes."
+          impact: "Medium - Potential backpressure building"
+          action: "Monitor writer throughput and consider scaling"
+
+  - name: reliability_slos
+    interval: 60s
+    rules:
+      # Message Delivery Success Rate
+      - alert: LowMessageDeliveryRate
+        expr: |
+          (
+            sum(rate(output_sent{instance="timeseries-writer:4195"}[5m]))
+            /
+            sum(rate(input_received{instance="data-injector:4195"}[5m]))
+          ) * 100 < 99.0
+        for: 15m
+        labels:
+          severity: critical
+          component: pipeline
+          slo: reliability
+        annotations:
+          summary: "Message delivery success rate below SLO"
+          description: "Delivery rate is {{ $value | humanize }}%, below 99.9% SLO for 15 minutes."
+          impact: "Critical - Potential data loss occurring"
+          action: "Check for errors in injector and writer, verify database connectivity"
+
+      - alert: HighDatabaseWriteErrorRate
+        expr: |
+          (
+            sum(rate(output_error{instance="timeseries-writer:4195"}[5m]))
+            /
+            sum(rate(output_sent{instance="timeseries-writer:4195"}[5m]))
+          ) * 100 > 1.0
+        for: 10m
+        labels:
+          severity: critical
+          component: timescaledb
+          slo: reliability
+        annotations:
+          summary: "Database write error rate exceeds threshold"
+          description: "Write error rate is {{ $value | humanize }}%, exceeding 1% for 10 minutes."
+          impact: "Critical - Data persistence failures occurring"
+          action: "Check database logs, connection pool, and disk space"
+
+      - alert: HighMQTTConnectionFailureRate
+        expr: |
+          rate(input_connection_failed{instance="data-injector:4195"}[5m]) +
+          rate(input_connection_lost{instance="data-injector:4195"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: high
+          component: mqtt
+          slo: reliability
+        annotations:
+          summary: "High MQTT connection failure rate"
+          description: "MQTT connections failing at {{ $value | humanize }} per minute for 5 minutes."
+          impact: "High - Network or MQTT broker instability"
+          action: "Check MQTT broker health, network connectivity, and broker logs"
+
+      - alert: HighBrokerConnectionFailureRate
+        expr: |
+          rate(output_connection_failed{instance="data-injector:4195"}[5m]) +
+          rate(input_connection_failed{instance="timeseries-writer:4195"}[5m]) > 5
+        for: 5m
+        labels:
+          severity: high
+          component: rabbitmq
+          slo: reliability
+        annotations:
+          summary: "High RabbitMQ connection failure rate"
+          description: "Broker connections failing at {{ $value | humanize }} per minute for 5 minutes."
+          impact: "High - Broker connectivity issues"
+          action: "Check RabbitMQ health, connection limits, and network"
+
+  - name: resource_exhaustion
+    interval: 60s
+    rules:
+      # System Resource Alerts
+      - alert: HighCPUUsage
+        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 10m
+        labels:
+          severity: high
+          component: infrastructure
+          slo: resources
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value | humanize }}%, exceeding 85% threshold for 10 minutes."
+          impact: "High - System performance degradation likely"
+          action: "Check top CPU consumers, consider scaling resources"
+
+      - alert: CriticalCPUUsage
+        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: infrastructure
+          slo: resources
+        annotations:
+          summary: "Critical CPU usage"
+          description: "CPU usage is {{ $value | humanize }}%, exceeding 95% for 5 minutes."
+          impact: "Critical - System throttling imminent"
+          action: "Immediate action required - scale resources or reduce load"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: high
+          component: infrastructure
+          slo: resources
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value | humanize }}%, exceeding 90% threshold for 5 minutes."
+          impact: "High - Risk of OOM kills"
+          action: "Check memory consumers, consider increasing memory or reducing load"
+
+      - alert: HighDiskUsage
+        expr: 100 - ((node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100) > 85
+        for: 5m
+        labels:
+          severity: high
+          component: infrastructure
+          slo: resources
+        annotations:
+          summary: "High disk usage detected"
+          description: "Disk usage is {{ $value | humanize }}%, exceeding 85% threshold."
+          impact: "High - Risk of write failures"
+          action: "Clean up disk space or expand storage capacity"
+
+      - alert: CriticalDiskUsage
+        expr: 100 - ((node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100) > 95
+        for: 2m
+        labels:
+          severity: critical
+          component: infrastructure
+          slo: resources
+        annotations:
+          summary: "Critical disk usage"
+          description: "Disk usage is {{ $value | humanize }}%, exceeding 95%."
+          impact: "Critical - Write failures imminent"
+          action: "Immediate action required - free up disk space"
+
+      - alert: TimescaleDBGrowthRateHigh
+        expr: |
+          (
+            sum(pg_database_size_bytes{datname="tsdb"}) -
+            sum(pg_database_size_bytes{datname="tsdb"} offset 1d)
+          ) / 1024 / 1024 / 1024 > 2
+        for: 1h
+        labels:
+          severity: medium
+          component: timescaledb
+          slo: resources
+        annotations:
+          summary: "TimescaleDB growing faster than expected"
+          description: "Database grew {{ $value | humanize }} GB in the last day."
+          impact: "Medium - Capacity planning needed"
+          action: "Review data retention policies and storage capacity"
+
+  - name: observability_stack
+    interval: 60s
+    rules:
+      # Observability Infrastructure Alerts
+      - alert: PrometheusLowScrapeSuccessRate
+        expr: |
+          (
+            sum(up{job="pathfinder-dev"} == 1) /
+            count(up{job="pathfinder-dev"})
+          ) * 100 < 95
+        for: 15m
+        labels:
+          severity: medium
+          component: prometheus
+          slo: observability
+        annotations:
+          summary: "Prometheus scrape success rate low"
+          description: "Scrape success rate is {{ $value | humanize }}%, below 95% for 15 minutes."
+          impact: "Medium - Monitoring blind spots present"
+          action: "Check Prometheus targets status and fix failing scrapes"
+
+      - alert: PrometheusDown
+        expr: up{job="prometheus"} == 0
+        for: 5m
+        labels:
+          severity: high
+          component: prometheus
+          slo: observability
+        annotations:
+          summary: "Prometheus is down"
+          description: "Prometheus has been down for 5 minutes."
+          impact: "High - Metrics collection stopped"
+          action: "Check Prometheus container and restart if needed"
+
+      - alert: GrafanaDown
+        expr: up{job="grafana"} == 0
+        for: 5m
+        labels:
+          severity: medium
+          component: grafana
+          slo: observability
+        annotations:
+          summary: "Grafana is down"
+          description: "Grafana has been down for 5 minutes."
+          impact: "Medium - Dashboard access unavailable"
+          action: "Check Grafana container and restart if needed"
+
+      - alert: PrometheusHighStorageUsage
+        expr: prometheus_tsdb_storage_blocks_bytes / 1024 / 1024 / 1024 > 10
+        for: 1h
+        labels:
+          severity: medium
+          component: prometheus
+          slo: observability
+        annotations:
+          summary: "Prometheus TSDB storage usage high"
+          description: "Prometheus storage is {{ $value | humanize }} GB."
+          impact: "Medium - Storage capacity concern"
+          action: "Review retention settings or increase storage capacity"
+
+  - name: slo_error_budget
+    interval: 300s
+    rules:
+      # SLO Error Budget Burn Rate Alerts
+      - alert: HighErrorBudgetBurnRate
+        expr: |
+          (
+            1 - avg_over_time(up{instance=~"mqtt-broker:.*|data-injector:4195|rabbitmq:15692|timeseries-writer:4195|postgres-exporter:9187"}[1h])
+          ) > 0.005
+        for: 5m
+        labels:
+          severity: high
+          component: platform
+          slo: error_budget
+        annotations:
+          summary: "High error budget burn rate detected"
+          description: "Error budget burning at {{ $value | humanizePercentage }} per hour, will exhaust monthly budget in < 2 days at current rate."
+          impact: "High - SLO violation imminent"
+          action: "Investigate reliability issues immediately to preserve error budget"
+
+      - alert: CriticalErrorBudgetRemaining
+        expr: |
+          avg_over_time(up{instance=~"mqtt-broker:.*|data-injector:4195|rabbitmq:15692|timeseries-writer:4195|postgres-exporter:9187"}[30d]) < 0.9975
+        for: 10m
+        labels:
+          severity: critical
+          component: platform
+          slo: error_budget
+        annotations:
+          summary: "Critical error budget remaining"
+          description: "Only {{ $value | humanizePercentage }} availability over 30 days, below 99.75% threshold (< 25% error budget remaining)."
+          impact: "Critical - Feature freeze recommended"
+          action: "Focus all efforts on stability and reliability"

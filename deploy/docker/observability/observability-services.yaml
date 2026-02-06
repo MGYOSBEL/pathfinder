@@ -12,6 +12,7 @@ services:
         max-file: "3"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./alerting-rules.yml:/etc/prometheus/alerting-rules.yml:ro
       # - prometheus-data:/prometheus
     tmpfs:
       - /prometheus:uid=65534,gid=65534,mode=0755,size=1g
@@ -20,6 +21,42 @@ services:
       - "--storage.tsdb.retention.size=1GB" ### Limitar el tamaño total a 50GB
       - "--storage.tsdb.path=/prometheus" ### Ruta de almacenamiento
       - "--config.file=/etc/prometheus/prometheus.yml" ### Ruta de config
+    networks:
+      - pathfinder_network_dev
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    ports:
+      - "9093:9093"
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      # - alertmanager-data:/alertmanager
+    tmpfs:
+      - /alertmanager:uid=65534,gid=65534,mode=0755,size=100m
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+      - "--web.external-url=http://localhost:9093"
+    environment:
+      # SMTP configuration (override with .env file)
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com:587}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - ALERT_EMAIL_FROM=${ALERT_EMAIL_FROM:-alerts@pathfinder.local}
+      - ALERT_EMAIL_CRITICAL=${ALERT_EMAIL_CRITICAL:-ops-oncall@pathfinder.local}
+      - ALERT_EMAIL_HIGH=${ALERT_EMAIL_HIGH:-ops-team@pathfinder.local}
+      # Slack configuration (override with .env file)
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
+      - SLACK_CRITICAL_CHANNEL=${SLACK_CRITICAL_CHANNEL:-#alerts-critical}
+      - SLACK_HIGH_CHANNEL=${SLACK_HIGH_CHANNEL:-#alerts-high}
+      - SLACK_MEDIUM_CHANNEL=${SLACK_MEDIUM_CHANNEL:-#alerts-medium}
     networks:
       - pathfinder_network_dev
 
@@ -37,7 +74,11 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning/datasources/prometheus.yaml:/etc/grafana/provisioning/datasources/prometheus.yaml
-      - ./grafana/provisioning/dashboards/MONITORING:/etc/grafana/provisioning/dashboards/MONITORING
+      - ./grafana/provisioning/dashboards/00-OVERVIEW/:/etc/grafana/provisioning/dashboards/00-OVERVIEW:ro
+      - ./grafana/provisioning/dashboards/01-INFRASTRUCTURE/:/etc/grafana/provisioning/dashboards/01-INFRASTRUCTURE:ro
+      - ./grafana/provisioning/dashboards/02-MESSAGING/message-flow-overview.json:/etc/grafana/provisioning/dashboards/02-MESSAGING/message-flow-overview.json:ro
+      - ./grafana/provisioning/dashboards/03-DATA-STORAGE/minio.json:/etc/grafana/provisioning/dashboards/03-DATA-STORAGE/minio.json:ro
+      - ./grafana/provisioning/dashboards/04-APPLICATION/:/etc/grafana/provisioning/dashboards/04-APPLICATION:ro
       - ./grafana/provisioning/dashboards/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
     networks:
       - pathfinder_network_dev
@@ -109,7 +150,7 @@ services:
     container_name: otel-collector
     ports:
       - 1888:1888 # pprof extension
-      - 8888:8888 # Prometheus metrics exposed by the Collector
+      - 8889:8888 # Prometheus metrics exposed by the Collector (mapped to 8889 to avoid conflict with MQTT)
       - 9464:9464 # Prometheus exporter metrics
       - 13133:13133 # health_check extension
       - 4317:4317 # OTLP gRPC receiver

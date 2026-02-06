@@ -11,6 +11,9 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
+  grafana:
+    volumes:
+      - ./observability/grafana/provisioning/dashboards/02-MESSAGING/rabbitmq-broker.json:/etc/grafana/provisioning/dashboards/02-MESSAGING/rabbitmq-broker.json
 volumes:
   rabbitmq_data:
     driver: local

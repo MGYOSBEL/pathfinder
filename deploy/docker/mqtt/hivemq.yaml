@@ -1,7 +1,19 @@
 services:
   mqtt-broker:
-    image: hivemq/hivemq4
+    build:
+      context: ./mqtt/hivemq
+      dockerfile: Dockerfile
+    image: pathfinder-hivemq:latest
     ports:
-      - "1883:1883"
-      - "8083:8080"
+      - "1883:1883" # MQTT
+      - "8083:8080" # Control Center
+      - "8888:9399" # Prometheus metrics (internal 9399, exposed as 8888 like VerneMQ)
+    volumes:
+      - ./mqtt/hivemq/prometheusConfiguration.properties:/opt/hivemq/extensions/hivemq-prometheus-extension/prometheusConfiguration.properties:ro
     container_name: hivemq-edge
+    networks:
+      - pathfinder_network_dev
+
+  grafana:
+    volumes:
+      - ./observability/grafana/provisioning/dashboards/02-MESSAGING/hivemq-mqtt-broker.json:/etc/grafana/provisioning/dashboards/02-MESSAGING/hivemq-mqtt-broker.json

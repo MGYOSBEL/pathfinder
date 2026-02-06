@@ -14,6 +14,17 @@ services:
       - NO_TS_TUNE=false # Run timescaledb-tune (set to true to disable tuning)
     volumes:
       - timescaledb-data:/var/lib/postgresql/data # Persist data to a named volume
+    networks:
+      - pathfinder_network_dev
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: postgres-exporter
+    environment:
+      - DATA_SOURCE_NAME=postgresql://${TIMESCALE_ADMIN_USER}:${TIMESCALE_ADMIN_PASSWORD}@${TIMESCALE_URL}/${TIMESCALE_DBNAME}?sslmode=require
+    networks:
+      - pathfinder_network_dev
+    restart: unless-stopped
 
   grafana:
     environment:
@@ -23,7 +34,7 @@ services:
       - TIMESCALE_DBNAME=${TIMESCALE_DBNAME}
     volumes:
       - ./observability/grafana/provisioning/datasources/timescaledb.yaml:/etc/grafana/provisioning/datasources/timescaledb.yaml
-      - ./observability/grafana/provisioning/dashboards/DATA/timescaledb:/etc/grafana/provisioning/dashboards/DATA
+      - ./observability/grafana/provisioning/dashboards/03-DATA-STORAGE/timescaledb.json:/etc/grafana/provisioning/dashboards/03-DATA-STORAGE/timescaledb.json:ro
 
 volumes:
   timescaledb-data:

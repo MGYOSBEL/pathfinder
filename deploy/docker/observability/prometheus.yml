@@ -1,5 +1,16 @@
 global:
   scrape_interval: 15s
+  evaluation_interval: 30s
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+rule_files:
+  - /etc/prometheus/alerting-rules.yml
 
 scrape_configs:
   ############################### DEV ###################################
@@ -9,6 +20,12 @@ scrape_configs:
           - "node-exporter:9100"
           - "cadvisor:8080"
           - "rabbitmq:15692"
+          - "haproxy:8405"
+          - "mqtt-broker:8888"  # VerneMQ metrics
+          - "mqtt-broker:9399"  # HiveMQ metrics
+          - "postgres-exporter:9187"  # TimescaleDB metrics
+          - "minio:9000"  # MinIO metrics
+    metrics_path: "/metrics"
     relabel_configs:
       - source_labels: [__address__]
         target_label: "environment"
@@ -16,6 +33,11 @@ scrape_configs:
       - source_labels: [__address__]
         target_label: host
         replacement: "pathfinder-dev"
+      # MinIO metrics need custom path
+      - source_labels: [__address__]
+        regex: "minio:.*"
+        target_label: __metrics_path__
+        replacement: "/minio/v2/metrics/cluster"
 
   - job_name: "rabbitmq-detailed-pathfinder-dev"
     metrics_path: "/metrics/per-object"
@@ -31,3 +53,38 @@ scrape_configs:
       - source_labels: [__address__]
         target_label: host
         replacement: "pathfinder-dev"
+
+  - job_name: "benthos-processors-pathfinder-dev"
+    metrics_path: "/benthos/metrics"
+    static_configs:
+      - targets:
+          - "data-injector:4195"
+          - "timeseries-writer:4195"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: "environment"
+        replacement: "pathfinder-dev"
+      - source_labels: [__address__]
+        target_label: host
+        replacement: "pathfinder-dev"
+
+  # Observability Stack Monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets:
+          - "localhost:9090"
+
+  - job_name: "grafana"
+    static_configs:
+      - targets:
+          - "grafana:3000"
+
+  - job_name: "loki"
+    static_configs:
+      - targets:
+          - "loki:3100"
+
+  - job_name: "tempo"
+    static_configs:
+      - targets:
+          - "tempo:3200"
