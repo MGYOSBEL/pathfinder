@@ -12,7 +12,8 @@ input:
 output:
   mqtt:
     urls: ["${MQTT_PUBLISH_URL:localhost:1883}"]
-    client_id: ""
+    client_id: "data-generator"
+    dynamic_client_id_suffix: nanoid
     connect_timeout: 30s
     topic: ${MQTT_PUBLISH_TOPIC:/}
     # topic: "home/garden/station/1/environment"

@@ -5,7 +5,7 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD}
+      - POSTGRES_PASSWORD=${TIMESCALE_ADMIN_PASSWORD}
       - TIMESCALEDB_TELEMETRY=on # Disable telemetry
       - TS_TUNE_MEMORY=4GB # Set available memory for tuning
       - TS_TUNE_NUM_CPUS=4 # Set number of CPUs for tuning
@@ -21,7 +21,7 @@ services:
     image: prometheuscommunity/postgres-exporter:latest
     container_name: postgres-exporter
     environment:
-      - DATA_SOURCE_NAME=postgresql://${TIMESCALE_ADMIN_USER}:${TIMESCALE_ADMIN_PASSWORD}@${TIMESCALE_URL}/${TIMESCALE_DBNAME}?sslmode=require
+      - DATA_SOURCE_NAME=postgresql://${TIMESCALE_ADMIN_USER}:${TIMESCALE_ADMIN_PASSWORD}@${TIMESCALE_URL}/${TIMESCALE_DBNAME}?sslmode=${TIMESCALE_SSLMODE}
     networks:
       - pathfinder_network_dev
     restart: unless-stopped
@@ -32,6 +32,7 @@ services:
       - TIMESCALE_USER=${TIMESCALE_ADMIN_USER}
       - TIMESCALE_PASSWORD=${TIMESCALE_ADMIN_PASSWORD}
       - TIMESCALE_DBNAME=${TIMESCALE_DBNAME}
+      - TIMESCALE_SSLMODE=${TIMESCALE_SSLMODE}
     volumes:
       - ./observability/grafana/provisioning/datasources/timescaledb.yaml:/etc/grafana/provisioning/datasources/timescaledb.yaml
       - ./observability/grafana/provisioning/dashboards/03-DATA-STORAGE/timescaledb.json:/etc/grafana/provisioning/dashboards/03-DATA-STORAGE/timescaledb.json:ro

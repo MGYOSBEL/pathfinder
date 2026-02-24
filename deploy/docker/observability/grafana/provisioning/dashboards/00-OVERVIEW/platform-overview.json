@@ -157,7 +157,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "up{instance=\"mqtt-broker:8888\"} or up{instance=\"mqtt-broker:9399\"}",
+          "expr": "up{instance=\"mqtt-broker:8888\"} or up{instance=\"mqtt-broker:1883\"}",
           "refId": "A"
         }
       ],

@@ -48,6 +48,17 @@ down:
 destroy:
 	docker compose $(COMPOSE_FILES) down -v --remove-orphans
 
+.PHONY: scale
+scale:
+	@if [ -z "$(N)" ]; then \
+		echo "Error: N parameter is required. Usage: make scale N=3"; \
+		exit 1; \
+	fi
+	docker compose $(COMPOSE_FILES) up -d \
+		--scale generator-garden-station-1=$(N) \
+		--scale generator-garden-station-2=$(N) \
+		--scale generator-living-room=$(N)
+
 .PHONY: help
 help:
 	@echo "Available commands:"
@@ -56,3 +67,4 @@ help:
 	@echo "	stop:		Stop the containers(keep them)"
 	@echo "	down:		Delete the containers(keep data)"
 	@echo "	destroy:	Delete containers and data"
+	@echo "	scale N=X:	Scale all data generator services to N containers each"

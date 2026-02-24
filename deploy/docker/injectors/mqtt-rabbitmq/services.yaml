@@ -3,6 +3,8 @@ services:
     image: ghcr.io/redpanda-data/connect
     container_name: mqtt-rabbit-injector
     command: ["-w", "-c", "/connect.yaml"]
+    depends_on: 
+      - broker
     volumes:
       ## The route is relative to the file that merge this one
       - ./injectors/mqtt-rabbitmq/config.yaml:/connect.yaml

@@ -3,11 +3,16 @@ services:
     image: ghcr.io/redpanda-data/connect
     container_name: rabbitmq-timescale-writer
     command: ["-w", "-c", "/connect.yaml"]
+    depends_on: 
+      - broker
     volumes:
       - ./writers/rabbitmq/timescaledb/config.yaml:/connect.yaml
       - ./writers/rabbitmq/timescaledb/init_metrics_table.sql:/init_metrics_table.sql
     environment:
       RABBITMQ_SUBSCRIBE_URL: "amqp://${RABBITMQ_ADMIN_USER}:${RABBITMQ_ADMIN_PASSWORD}@broker:5672"
       RABBITMQ_SUBSCRIBE_QUEUE: timescale-writer
-      TIMESCALE_USER: tsdbadmin
+      TIMESCALE_USER: ${TIMESCALE_ADMIN_USER}
       TIMESCALE_ADMIN_PASSWORD: ${TIMESCALE_ADMIN_PASSWORD}
+      TIMESCALE_URL: ${TIMESCALE_URL}
+      TIMESCALE_DBNAME: ${TIMESCALE_DBNAME} 
+      TIMESCALE_SSLMODE: ${TIMESCALE_SSLMODE}

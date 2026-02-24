@@ -18,7 +18,7 @@ datasources:
       password: ${TIMESCALE_PASSWORD}
     jsonData:
       database: ${TIMESCALE_DBNAME}
-      sslmode: "require" # disable/require/verify-ca/verify-full
+      sslmode: ${TIMESCALE_SSLMODE} # disable/require/verify-ca/verify-full
       maxOpenConns: 100
       maxIdleConns: 100
       maxIdleConnsAuto: true

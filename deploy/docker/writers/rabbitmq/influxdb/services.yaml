@@ -3,6 +3,8 @@ services:
     image: ghcr.io/redpanda-data/connect
     container_name: rabbitmq-influx-writer
     command: ["-w", "-c", "/connect.yaml"]
+    depends_on: 
+      - broker
     volumes:
       - ./writers/rabbitmq/influxdb/config.yaml:/connect.yaml
     environment:
