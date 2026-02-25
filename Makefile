@@ -54,10 +54,28 @@ scale:
 		echo "Error: N parameter is required. Usage: make scale N=3"; \
 		exit 1; \
 	fi
-	docker compose $(COMPOSE_FILES) up -d \
-		--scale generator-garden-station-1=$(N) \
-		--scale generator-garden-station-2=$(N) \
-		--scale generator-living-room=$(N)
+	docker compose $(COMPOSE_FILES) scale \
+		generator-garden-station-1=$(N) \
+		generator-garden-station-2=$(N) \
+		generator-living-room=$(N)
+
+.PHONY: scale-writer
+scale-writer:
+	@if [ -z "$(N)" ]; then \
+		echo "Error: N parameter is required. Usage: make scale-writer N=3"; \
+		exit 1; \
+	fi
+	docker compose $(COMPOSE_FILES)\
+		scale --no-deps timeseries-writer=$(N)
+
+.PHONY: scale-injector
+scale-injector:
+	@if [ -z "$(N)" ]; then \
+		echo "Error: N parameter is required. Usage: make scale-injector N=3"; \
+		exit 1; \
+	fi
+	docker compose $(COMPOSE_FILES)\
+		scale --no-deps data-injector=$(N)
 
 .PHONY: help
 help:

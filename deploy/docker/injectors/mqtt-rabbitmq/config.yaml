@@ -5,7 +5,7 @@ input:
     client_id: "mqtt-injector-${uuid_v7()}"
     connect_timeout: 30s
     topics:
-      - "${MQTT_SUBSCRIBE_TOPIC:/}"
+      - "$share/injectors/${MQTT_SUBSCRIBE_TOPIC:/}" # shared subscription topic structure(subscription name: injectors)
     auto_replay_nacks: true
 
 pipeline:

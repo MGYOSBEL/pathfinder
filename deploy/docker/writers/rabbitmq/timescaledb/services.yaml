@@ -1,7 +1,7 @@
 services:
   timeseries-writer:
     image: ghcr.io/redpanda-data/connect
-    container_name: rabbitmq-timescale-writer
+    # container_name: rabbitmq-timescale-writer
     command: ["-w", "-c", "/connect.yaml"]
     depends_on: 
       - broker

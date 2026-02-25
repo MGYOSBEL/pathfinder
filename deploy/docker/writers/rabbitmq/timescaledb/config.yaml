@@ -11,6 +11,7 @@ input:
       - exchange: "data"
         key: "#"
     auto_ack: false
+    prefetch_count: 500
 
 output:
   label: "timescale"
@@ -35,6 +36,9 @@ output:
         this.unit,
         this.timestamp
       ]
-    max_in_flight: 64
+    max_in_flight: 256
+    batching:
+      count: 100
+      period: 500ms
     init_files:
       - ./init_metrics_table.sql

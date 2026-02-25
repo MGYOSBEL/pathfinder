@@ -7,7 +7,7 @@ services:
     networks:
       - pathfinder_network_dev
     environment:
-      GENERATOR_INTERVAL: 3s
+      GENERATOR_INTERVAL: 10ms
       MQTT_PUBLISH_URL: "mqtt-broker:1883"
       MQTT_PUBLISH_TOPIC: home/garden/station/1/environment
       MQTT_PUBLISH_QOS: 1
@@ -26,7 +26,7 @@ services:
     networks:
       - pathfinder_network_dev
     environment:
-      GENERATOR_INTERVAL: 5s
+      GENERATOR_INTERVAL: 10ms
       MQTT_PUBLISH_URL: "mqtt-broker:1883"
       MQTT_PUBLISH_TOPIC: home/garden/station/2/environment
       MQTT_PUBLISH_QOS: 1
@@ -45,6 +45,7 @@ services:
     networks:
       - pathfinder_network_dev
     environment:
+      GENERATOR_INTERVAL: 10ms
       MQTT_PUBLISH_URL: "mqtt-broker:1883"
       MQTT_PUBLISH_TOPIC: home/kitchen/stove/1/environment
       MQTT_PUBLISH_QOS: 1
