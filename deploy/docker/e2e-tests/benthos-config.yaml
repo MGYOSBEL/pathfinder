@@ -1,8 +1,12 @@
 input:
-  generate:
-    mapping: |
-      root.payload = {"value": random_int(min: 0, max: 100)}
-    interval: 5s
+  mqtt:
+    urls:
+      - mqtt://mosquitto:1883
+    client_id: benthos-e2e-test
+    connect_timeout: 30s
+    topics:
+      - "#"
+    auto_replay_nacks: true
 
 pipeline:
   processors:
@@ -10,4 +14,4 @@ pipeline:
 
 output:
   stdout:
-    codec: json_pretty
+    codec: lines
