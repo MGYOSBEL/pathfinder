@@ -7,21 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	enterprise string = "stark-industries"
-	site       string = "barcelona"
-	plant      string = "ironman-manufacuture"
-	machine    string = "engine-A"
-)
-
-func constantValue(s string) *topicparser.ConstantValue {
-	return &topicparser.ConstantValue{Value: s}
-}
-
-func topicSegmentValue(s string) *topicparser.TopicSegmentValue {
-	return &topicparser.TopicSegmentValue{Value: s}
-}
-
 func TestParseTopic_ConstantExtraction(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -40,47 +25,52 @@ func TestParseTopic_ConstantExtraction(t *testing.T) {
 			wantErr:        nil,
 		},
 		{
-			name:     "single constant",
-			topic:    "foo/bar/baz",
-			pattern:  "foo/bar/baz",
+			name:    "single constant",
+			topic:   "foo/bar/baz",
+			pattern: "foo/bar/baz",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
-					TagName:  "enterprise",
-					Constant: constantValue(enterprise),
+					TagName: "enterprise",
+					Type:    "Constant",
+					Value:   "stark-industries",
 				},
 			},
 			wantFields: map[string]string{
-				"enterprise": enterprise,
+				"enterprise": "stark-industries",
 			},
 			wantErr: nil,
 		},
 		{
-			name:     "multiple constants",
-			topic:    "foo/bar/baz",
-			pattern:  "foo/bar/baz",
+			name:    "multiple constants",
+			topic:   "foo/bar/baz",
+			pattern: "foo/bar/baz",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
-					TagName:  "enterprise",
-					Constant: constantValue(enterprise),
+					TagName: "enterprise",
+					Type:    "Constant",
+					Value:   "stark-industries",
 				},
 				{
-					TagName:  "plant",
-					Constant: constantValue(plant),
+					TagName: "plant",
+					Type:    "Constant",
+					Value:   "ironman-manufacuture",
 				},
 				{
-					TagName:  "site",
-					Constant: constantValue(site),
+					TagName: "site",
+					Type:    "Constant",
+					Value:   "barcelona",
 				},
 				{
-					TagName:  "machine",
-					Constant: constantValue(machine),
+					TagName: "machine",
+					Type:    "Constant",
+					Value:   "engine-A",
 				},
 			},
 			wantFields: map[string]string{
-				"enterprise": enterprise,
-				"plant":      plant,
-				"site":       site,
-				"machine":    machine,
+				"enterprise": "stark-industries",
+				"plant":      "ironman-manufacuture",
+				"site":       "barcelona",
+				"machine":    "engine-A",
 			},
 			wantErr: nil,
 		},
@@ -109,13 +99,14 @@ func TestParseTopic_SingleIndexExtraction(t *testing.T) {
 		wantErr        error
 	}{
 		{
-			name:     "extract segment 0",
-			topic:    "plant-a/line-1/cell-x",
-			pattern:  "plant-a/+/+",
+			name:    "extract segment 0",
+			topic:   "plant-a/line-1/cell-x",
+			pattern: "plant-a/+/+",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "plant",
-					TopicSegment: topicSegmentValue("0"),
+					Type:    "TopicSegment",
+					Value:   "0",
 				},
 			},
 			wantFields: map[string]string{
@@ -124,13 +115,14 @@ func TestParseTopic_SingleIndexExtraction(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:     "extract segment 1",
-			topic:    "plant-a/line-1/cell-x",
-			pattern:  "+/+/+",
+			name:    "extract segment 1",
+			topic:   "plant-a/line-1/cell-x",
+			pattern: "+/+/+",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "line",
-					TopicSegment: topicSegmentValue("1"),
+					Type:    "TopicSegment",
+					Value:   "1",
 				},
 			},
 			wantFields: map[string]string{
@@ -139,13 +131,14 @@ func TestParseTopic_SingleIndexExtraction(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:     "extract segment 2",
-			topic:    "plant-a/line-1/cell-x",
-			pattern:  "+/+/+",
+			name:    "extract segment 2",
+			topic:   "plant-a/line-1/cell-x",
+			pattern: "+/+/+",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "cell",
-					TopicSegment: topicSegmentValue("2"),
+					Type:    "TopicSegment",
+					Value:   "2",
 				},
 			},
 			wantFields: map[string]string{
@@ -154,13 +147,14 @@ func TestParseTopic_SingleIndexExtraction(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:     "index out of bounds",
-			topic:    "plant-a/line-1",
-			pattern:  "+/+",
+			name:    "index out of bounds",
+			topic:   "plant-a/line-1",
+			pattern: "+/+",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "cell",
-					TopicSegment: topicSegmentValue("5"),
+					Type:    "TopicSegment",
+					Value:   "5",
 				},
 			},
 			wantFields: nil,
@@ -191,13 +185,14 @@ func TestParseTopic_RangeExtraction(t *testing.T) {
 		wantErr        error
 	}{
 		{
-			name:     "extract from segment 2 to end (single remaining)",
-			topic:    "plant-a/line-1/sensor-data",
-			pattern:  "plant-a/+/+",
+			name:    "extract from segment 2 to end (single remaining)",
+			topic:   "plant-a/line-1/sensor-data",
+			pattern: "plant-a/+/+",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "measurement",
-					TopicSegment: topicSegmentValue("2:"),
+					Type:    "TopicSegment",
+					Value:   "2:",
 				},
 			},
 			wantFields: map[string]string{
@@ -206,13 +201,14 @@ func TestParseTopic_RangeExtraction(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:     "extract from segment 2 to end (multiple remaining)",
-			topic:    "plant-a/line-1/sensor/temperature/reading",
-			pattern:  "plant-a/+/#",
+			name:    "extract from segment 2 to end (multiple remaining)",
+			topic:   "plant-a/line-1/sensor/temperature/reading",
+			pattern: "plant-a/+/#",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "measurement",
-					TopicSegment: topicSegmentValue("2:"),
+					Type:    "TopicSegment",
+					Value:   "2:",
 				},
 			},
 			wantFields: map[string]string{
@@ -221,13 +217,14 @@ func TestParseTopic_RangeExtraction(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:     "extract from segment 0 to end",
-			topic:    "a/b/c/d",
-			pattern:  "+/+/+/+",
+			name:    "extract from segment 0 to end",
+			topic:   "a/b/c/d",
+			pattern: "+/+/+/+",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "all",
-					TopicSegment: topicSegmentValue("0:"),
+					Type:    "TopicSegment",
+					Value:   "0:",
 				},
 			},
 			wantFields: map[string]string{
@@ -236,13 +233,14 @@ func TestParseTopic_RangeExtraction(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:     "range out of bounds",
-			topic:    "a/b",
-			pattern:  "+/+",
+			name:    "range out of bounds",
+			topic:   "a/b",
+			pattern: "+/+",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "data",
-					TopicSegment: topicSegmentValue("5:"),
+					Type:    "TopicSegment",
+					Value:   "5:",
 				},
 			},
 			wantFields: nil,
@@ -273,13 +271,14 @@ func TestParseTopic_MultiIndexExtraction(t *testing.T) {
 		wantErr        error
 	}{
 		{
-			name:     "extract indices 0,2",
-			topic:    "a/b/c/d",
-			pattern:  "+/+/+/+",
+			name:    "extract indices 0,2",
+			topic:   "a/b/c/d",
+			pattern: "+/+/+/+",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "mixed",
-					TopicSegment: topicSegmentValue("0,2"),
+					Type:    "TopicSegment",
+					Value:   "0,2",
 				},
 			},
 			wantFields: map[string]string{
@@ -288,13 +287,14 @@ func TestParseTopic_MultiIndexExtraction(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:     "extract indices 0,2,3",
-			topic:    "plant/line/cell/measurement",
-			pattern:  "+/+/+/+",
+			name:    "extract indices 0,2,3",
+			topic:   "plant/line/cell/measurement",
+			pattern: "+/+/+/+",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "hierarchy",
-					TopicSegment: topicSegmentValue("0,2,3"),
+					Type:    "TopicSegment",
+					Value:   "0,2,3",
 				},
 			},
 			wantFields: map[string]string{
@@ -303,13 +303,14 @@ func TestParseTopic_MultiIndexExtraction(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:     "multi-index out of bounds",
-			topic:    "a/b",
-			pattern:  "+/+",
+			name:    "multi-index out of bounds",
+			topic:   "a/b",
+			pattern: "+/+",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "data",
-					TopicSegment: topicSegmentValue("0,5"),
+					Type:    "TopicSegment",
+					Value:   "0,5",
 				},
 			},
 			wantFields: nil,
@@ -340,55 +341,62 @@ func TestParseTopic_MixedConstantAndSegment(t *testing.T) {
 		wantErr        error
 	}{
 		{
-			name:     "constants and single indices",
-			topic:    "plant-a/line-1/cell-x",
-			pattern:  "+/+/+",
+			name:    "constants and single indices",
+			topic:   "plant-a/line-1/cell-x",
+			pattern: "+/+/+",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
-					TagName:  "enterprise",
-					Constant: constantValue(enterprise),
+					TagName: "enterprise",
+					Type:    "Constant",
+					Value:   "stark-industries",
 				},
 				{
 					TagName: "plant",
-					TopicSegment: topicSegmentValue("0"),
+					Type:    "TopicSegment",
+					Value:   "0",
 				},
 				{
-					TagName:  "site",
-					Constant: constantValue(site),
+					TagName: "site",
+					Type:    "Constant",
+					Value:   "barcelona",
 				},
 				{
 					TagName: "line",
-					TopicSegment: topicSegmentValue("1"),
+					Type:    "TopicSegment",
+					Value:   "1",
 				},
 			},
 			wantFields: map[string]string{
-				"enterprise": enterprise,
+				"enterprise": "stark-industries",
 				"plant":      "plant-a",
-				"site":       site,
+				"site":       "barcelona",
 				"line":       "line-1",
 			},
 			wantErr: nil,
 		},
 		{
-			name:     "constants and range extraction",
-			topic:    "plant-a/line-1/temp/sensor-1",
-			pattern:  "+/+/#",
+			name:    "constants and range extraction",
+			topic:   "plant-a/line-1/temp/sensor-1",
+			pattern: "+/+/#",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
-					TagName:  "enterprise",
-					Constant: constantValue(enterprise),
+					TagName: "enterprise",
+					Type:    "Constant",
+					Value:   "stark-industries",
 				},
 				{
 					TagName: "plant",
-					TopicSegment: topicSegmentValue("0"),
+					Type:    "TopicSegment",
+					Value:   "0",
 				},
 				{
 					TagName: "measurement_path",
-					TopicSegment: topicSegmentValue("2:"),
+					Type:    "TopicSegment",
+					Value:   "2:",
 				},
 			},
 			wantFields: map[string]string{
-				"enterprise":       enterprise,
+				"enterprise":       "stark-industries",
 				"plant":            "plant-a",
 				"measurement_path": "temp/sensor-1",
 			},
@@ -418,25 +426,27 @@ func TestParseTopic_InvalidSyntax(t *testing.T) {
 		wantErr        error
 	}{
 		{
-			name:     "invalid syntax in TopicSegment.Value (non-numeric)",
-			topic:    "a/b/c",
-			pattern:  "+/+/+",
+			name:    "invalid syntax in TopicSegment.Value (non-numeric)",
+			topic:   "a/b/c",
+			pattern: "+/+/+",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "field",
-					TopicSegment: topicSegmentValue("abc"),
+					Type:    "TopicSegment",
+					Value:   "abc",
 				},
 			},
 			wantErr: topicparser.ErrInvalidTopicStructure,
 		},
 		{
-			name:     "invalid syntax in TopicSegment.Value (colon in wrong place)",
-			topic:    "a/b/c",
-			pattern:  "+/+/+",
+			name:    "invalid syntax in TopicSegment.Value (colon in wrong place)",
+			topic:   "a/b/c",
+			pattern: "+/+/+",
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "field",
-					TopicSegment: topicSegmentValue(":2"),
+					Type:    "TopicSegment",
+					Value:   ":2",
 				},
 			},
 			wantErr: topicparser.ErrInvalidTopicStructure,
@@ -450,4 +460,3 @@ func TestParseTopic_InvalidSyntax(t *testing.T) {
 		})
 	}
 }
-

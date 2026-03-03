@@ -10,10 +10,10 @@ func ParseTopic(topic, pattern string, metadataConfig []MetadataEntry) (*Extract
 	fields := make(map[string]string)
 
 	for _, entry := range metadataConfig {
-		if entry.Constant != nil {
-			fields[entry.TagName] = entry.Constant.Value
-		} else if entry.TopicSegment != nil {
-			value, err := extractSegment(topic, entry.TopicSegment.Value)
+		if entry.Type == "Constant" {
+			fields[entry.TagName] = entry.Value
+		} else if entry.Type == "TopicSegment" {
+			value, err := extractSegment(topic, entry.Value)
 			if err != nil {
 				return nil, err
 			}
