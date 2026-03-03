@@ -1,0 +1,13 @@
+input:
+  generate:
+    mapping: |
+      root.payload = {"value": random_int(min: 0, max: 100)}
+    interval: 5s
+
+pipeline:
+  processors:
+    - topic_parser: {}
+
+output:
+  stdout:
+    codec: json_pretty
