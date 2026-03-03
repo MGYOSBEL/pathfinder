@@ -62,3 +62,20 @@ type TopicParserConfig struct {
 	MetadataConfig []MetadataEntry `json:"metadata_config"`
 	PayloadConfig  PayloadConfig   `json:"payload_config"`
 }
+
+// ProcessedMessage represents the final output message after successful processing
+type ProcessedMessage struct {
+	ExtractedMetadata map[string]string
+	ExtractedPayload  map[string]string
+	ConfigVersion     string
+	Timestamp         string
+}
+
+// DLQMessage represents a message sent to the Dead Letter Queue on processing failure
+type DLQMessage struct {
+	OriginalTopic   string
+	OriginalPayload []byte
+	ErrorMessage    string
+	ConfigVersion   string
+	Timestamp       string
+}
