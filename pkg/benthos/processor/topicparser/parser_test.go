@@ -31,7 +31,7 @@ func TestParseTopic_ConstantExtraction(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "enterprise",
-					Type:    "Constant",
+					Type:    topicparser.MetadataTypeConstant,
 					Value:   "stark-industries",
 				},
 			},
@@ -47,22 +47,22 @@ func TestParseTopic_ConstantExtraction(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "enterprise",
-					Type:    "Constant",
+					Type:    topicparser.MetadataTypeConstant,
 					Value:   "stark-industries",
 				},
 				{
 					TagName: "plant",
-					Type:    "Constant",
+					Type:    topicparser.MetadataTypeConstant,
 					Value:   "ironman-manufacuture",
 				},
 				{
 					TagName: "site",
-					Type:    "Constant",
+					Type:    topicparser.MetadataTypeConstant,
 					Value:   "barcelona",
 				},
 				{
 					TagName: "machine",
-					Type:    "Constant",
+					Type:    topicparser.MetadataTypeConstant,
 					Value:   "engine-A",
 				},
 			},
@@ -105,7 +105,7 @@ func TestParseTopic_SingleIndexExtraction(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "plant",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "0",
 				},
 			},
@@ -121,7 +121,7 @@ func TestParseTopic_SingleIndexExtraction(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "line",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "1",
 				},
 			},
@@ -137,7 +137,7 @@ func TestParseTopic_SingleIndexExtraction(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "cell",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "2",
 				},
 			},
@@ -153,7 +153,7 @@ func TestParseTopic_SingleIndexExtraction(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "cell",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "5",
 				},
 			},
@@ -191,7 +191,7 @@ func TestParseTopic_RangeExtraction(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "measurement",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "2:",
 				},
 			},
@@ -207,7 +207,7 @@ func TestParseTopic_RangeExtraction(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "measurement",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "2:",
 				},
 			},
@@ -223,7 +223,7 @@ func TestParseTopic_RangeExtraction(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "all",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "0:",
 				},
 			},
@@ -239,7 +239,7 @@ func TestParseTopic_RangeExtraction(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "data",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "5:",
 				},
 			},
@@ -277,7 +277,7 @@ func TestParseTopic_MultiIndexExtraction(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "mixed",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "0,2",
 				},
 			},
@@ -293,7 +293,7 @@ func TestParseTopic_MultiIndexExtraction(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "hierarchy",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "0,2,3",
 				},
 			},
@@ -309,7 +309,7 @@ func TestParseTopic_MultiIndexExtraction(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "data",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "0,5",
 				},
 			},
@@ -347,22 +347,22 @@ func TestParseTopic_MixedConstantAndSegment(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "enterprise",
-					Type:    "Constant",
+					Type:    topicparser.MetadataTypeConstant,
 					Value:   "stark-industries",
 				},
 				{
 					TagName: "plant",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "0",
 				},
 				{
 					TagName: "site",
-					Type:    "Constant",
+					Type:    topicparser.MetadataTypeConstant,
 					Value:   "barcelona",
 				},
 				{
 					TagName: "line",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "1",
 				},
 			},
@@ -381,17 +381,17 @@ func TestParseTopic_MixedConstantAndSegment(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "enterprise",
-					Type:    "Constant",
+					Type:    topicparser.MetadataTypeConstant,
 					Value:   "stark-industries",
 				},
 				{
 					TagName: "plant",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "0",
 				},
 				{
 					TagName: "measurement_path",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "2:",
 				},
 			},
@@ -432,7 +432,7 @@ func TestParseTopic_InvalidSyntax(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "field",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   "abc",
 				},
 			},
@@ -445,7 +445,7 @@ func TestParseTopic_InvalidSyntax(t *testing.T) {
 			metadataConfig: []topicparser.MetadataEntry{
 				{
 					TagName: "field",
-					Type:    "TopicSegment",
+					Type:    topicparser.MetadataTypeTopicSegment,
 					Value:   ":2",
 				},
 			},
