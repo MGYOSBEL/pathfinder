@@ -13,9 +13,9 @@ type TopicSegmentValue struct {
 }
 
 type MetadataEntry struct {
-	TagName      string             `json:"tag_name"`
-	Constant     *ConstantValue     `json:"constant,omitempty"`
-	TopicSegment *TopicSegmentValue `json:"topic_segment,omitempty"`
+	TagName      string                `json:"tag_name"`
+	Constant     *ConstantValue        `json:"constant,omitempty"`
+	TopicSegment *TopicSegmentValue    `json:"topic_segment,omitempty"`
 }
 
 type PayloadConfig struct {
