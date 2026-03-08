@@ -6,6 +6,15 @@ services:
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
 
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+
   benthos:
     build:
       context: ../../..
@@ -13,5 +22,7 @@ services:
     command: run /config/benthos-config.yaml
     depends_on:
       - mosquitto
+      - db
     volumes:
       - ./benthos-config.yaml:/config/benthos-config.yaml:ro
+

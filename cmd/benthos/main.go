@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 
 	// Register topicparser plugin
 	_ "github.com/MGYOSBEL/pathfinder/pkg/benthos/processor/topicparser"
@@ -14,6 +13,5 @@ import (
 )
 
 func main() {
-	fmt.Println("Hello from my custom benthos")
 	service.RunCLI(context.Background())
 }

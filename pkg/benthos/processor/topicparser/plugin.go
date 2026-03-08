@@ -16,7 +16,11 @@ func (tp *topicParserProcessor) Process(ctx context.Context, msg *service.Messag
 	if !found {
 		return nil, fmt.Errorf("missing mqtt_topic in message metadata")
 	}
-	fmt.Printf("receive message from topic %s\n", topic)
+	meta, err := ParseTopic(topic, tp.config.Pattern, tp.config.MetadataConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse topic: %w", err)
+	}
+	fmt.Println(meta)
 	return []*service.Message{msg}, nil
 }
 
@@ -31,10 +35,37 @@ func configSpec() *service.ConfigSpec {
 
 func newProcessor(conf *service.ParsedConfig, mgr *service.Resources) (service.Processor, error) {
 	config := TopicParserConfig{
-		ID:       1,
-		Name:     "default_parser",
-		Pattern:  "+/+/+",
-		Version:  "1.0",
+		ID:      1,
+		Name:    "default_parser",
+		Pattern: "#", // This guarantees that all topics match this config
+		Version: "1.0",
+		MetadataConfig: []MetadataEntry{
+			{
+				TagName: "plant",
+				Type:    MetadataTypeConstant,
+				Value:   "Celsa",
+			},
+			{
+				TagName: "site",
+				Type:    MetadataTypeConstant,
+				Value:   "Barcelona",
+			},
+			{
+				TagName: "plant",
+				Type:    MetadataTypeTopicSegment,
+				Value:   "0",
+			},
+			{
+				TagName: "line",
+				Type:    MetadataTypeTopicSegment,
+				Value:   "1",
+			},
+			{
+				TagName: "machine",
+				Type:    MetadataTypeTopicSegment,
+				Value:   "2:",
+			},
+		},
 		Enabled:  true,
 		Priority: 0,
 	}
@@ -43,11 +74,11 @@ func newProcessor(conf *service.ParsedConfig, mgr *service.Resources) (service.P
 
 func init() {
 	err := service.RegisterProcessor(
-		"topic_parser", 
-		configSpec(), 
+		"topic_parser",
+		configSpec(),
 		newProcessor,
-		)
-    if err != nil {
-        panic(err)
-    }
+	)
+	if err != nil {
+		panic(err)
+	}
 }
