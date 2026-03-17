@@ -25,7 +25,7 @@ VALUES (
     true,
     0,
     '[
-        {"tag_name": "plant", "type": "Constant", "value": "Celsa"},
+        {"tag_name": "enterprise", "type": "Constant", "value": "MyCompany"},
         {"tag_name": "site", "type": "Constant", "value": "Barcelona"},
         {"tag_name": "plant", "type": "TopicSegment", "value": "0"},
         {"tag_name": "line", "type": "TopicSegment", "value": "1"},

@@ -2,7 +2,7 @@ services:
   mosquitto:
     image: eclipse-mosquitto:latest
     ports:
-      - "1883:1883"
+      - "18883:1883"
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
 
@@ -13,13 +13,19 @@ services:
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: postgres
     ports:
-      - "5432:5432"
+      - "54432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./postgres-data:/var/lib/postgresql
 
   benthos:
     build:
       context: ../../..
       dockerfile: deploy/docker/e2e-tests/Dockerfile
     command: run /config/benthos-config.yaml
+    environment:
+      MQTT_SUBSCRIBE_URL: "mqtt://mosquitto:1883"
+      TOPIC_PARSER_DSN: "postgresql://admin:admin@db:5432/postgres"
     depends_on:
       - mosquitto
       - db

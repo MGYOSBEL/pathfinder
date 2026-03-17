@@ -3,6 +3,7 @@ module github.com/MGYOSBEL/pathfinder
 go 1.26
 
 require (
+	github.com/jackc/pgx/v5 v5.7.6
 	github.com/redpanda-data/benthos/v4 v4.66.0
 	github.com/redpanda-data/connect/public/bundle/free/v4 v4.78.1
 	github.com/stretchr/testify v1.11.1
@@ -241,7 +242,6 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/pgtype v1.14.4 // indirect
 	github.com/jackc/pgx/v4 v4.18.3 // indirect
-	github.com/jackc/pgx/v5 v5.7.6 // indirect
 	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect

@@ -1,7 +1,7 @@
 input:
   mqtt:
     urls:
-      - mqtt://mosquitto:1883
+      - "${MQTT_SUBSCRIBE_URL:mqtt://localhost:18883}"
     client_id: benthos-e2e-test
     connect_timeout: 30s
     topics:
@@ -10,7 +10,8 @@ input:
 
 pipeline:
   processors:
-    - topic_parser: {}
+    - topic_parser: 
+        dsn: "${TOPIC_PARSER_DSN:postgresql://admin:admin@localhost:54432/postgres}"
 
 output:
   stdout:
