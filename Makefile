@@ -1,3 +1,4 @@
+IMAGE_TAG ?= 0.0.1
 # Services
 MQTT_BROKER ?= hivemq
 BROKER ?= rabbitmq
@@ -27,6 +28,10 @@ endif
 ifneq ($(filter $(TIMESERIES_DB),$(VALID_TIMESERIES_DB)),$(TIMESERIES_DB))
 $(error Invalid TIMESERIES_DB '$(TIMESERIES_DB)'. Valid: $(VALID_TIMESERIES_DB))
 endif
+
+.PHONY: docker
+docker:
+	docker build -t pathfinder-benthos:$(IMAGE_TAG) .
 
 .PHONY: deploy
 deploy:

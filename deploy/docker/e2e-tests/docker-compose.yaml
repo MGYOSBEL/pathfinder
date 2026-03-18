@@ -21,7 +21,7 @@ services:
   benthos:
     build:
       context: ../../..
-      dockerfile: deploy/docker/e2e-tests/Dockerfile
+      dockerfile: Dockerfile
     command: run /config/benthos-config.yaml
     environment:
       MQTT_SUBSCRIBE_URL: "mqtt://mosquitto:1883"

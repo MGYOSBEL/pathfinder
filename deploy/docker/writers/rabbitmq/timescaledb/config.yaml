@@ -26,14 +26,14 @@ output:
       let topic = meta("mqtt_topic")
       let topic_array = $topic.split("/")
       root = [
-        this.topic,
-        this.plant,
-        this.line,
-        this.cell,
-        this.measurement,
-        this.variable,
-        this.value,
-        this.unit,
+        $topic,
+        this.extracted_metadata.plant,
+        this.extracted_metadata.line,
+        this.extracted_metadata.cell,
+        this.extracted_metadata.measurement,
+        this.extracted_payload.variable,
+        this.extracted_payload.value,
+        this.extracted_payload.unit,
         this.timestamp
       ]
     max_in_flight: 256

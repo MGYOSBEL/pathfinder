@@ -1,6 +1,7 @@
 services:
   data-injector:
-    image: ghcr.io/redpanda-data/connect
+    # image: ghcr.io/redpanda-data/connect
+    image: pathfinder-benthos:0.0.1
     # container_name: mqtt-rabbit-injector
     command: ["-w", "-c", "/connect.yaml"]
     depends_on: 
@@ -16,3 +17,4 @@ services:
       MQTT_SUBSCRIBE_TOPIC: "home/#"
       MQTT_SUBSCRIBE_QOS: 1
       RABBITMQ_PUBLISH_URL: "amqp://${RABBITMQ_ADMIN_USER}:${RABBITMQ_ADMIN_PASSWORD}@broker:5672"
+      TOPIC_PARSER_DSN: postgres://${TIMESCALE_ADMIN_USER}:${TIMESCALE_ADMIN_PASSWORD}@${TIMESCALE_URL}/${TIMESCALE_DBNAME}?sslmode=${TIMESCALE_SSLMODE}

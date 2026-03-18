@@ -59,6 +59,11 @@ func (tp *topicParserProcessor) Process(ctx context.Context, msg *service.Messag
 	}
 
 	outMsg := service.NewMessage(jsonBytes)
+	_ = msg.MetaWalk(func(key string, value string) error {
+		outMsg.MetaSet(key, value)
+		return nil
+	})
+
 	return []*service.Message{outMsg}, nil
 }
 
