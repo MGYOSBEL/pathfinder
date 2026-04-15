@@ -1,0 +1,7 @@
+# ArgoCD Helm values for the prod environment
+# Secret values (admin password) are injected at bootstrap time from secrets.env
+# See: https://artifacthub.io/packages/helm/argo/argo-cd
+
+server:
+  ingress:
+    enabled: false
