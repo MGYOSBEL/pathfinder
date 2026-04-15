@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/MGYOSBEL/pathfinder
-    targetRevision: HEAD
+    targetRevision: devops/setup-k8s-cluster
     path: deploy/cluster/argocd
     directory:
       recurse: true
