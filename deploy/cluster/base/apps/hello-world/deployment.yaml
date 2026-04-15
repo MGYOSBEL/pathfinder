@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
         - name: hello-world
-          image: paulbouwer/hello-kubernetes:1.8 # nginxdemos/hello:latest
+          image: nginxdemos/hello:latest
           ports:
             - containerPort: 80
