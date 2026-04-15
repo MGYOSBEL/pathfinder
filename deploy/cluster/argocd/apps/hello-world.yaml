@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/MGYOSBEL/pathfinder
     targetRevision: devops/setup-k8s-cluster
-    path: deploy/cluster/base/apps/hello-world
+    path: deploy/cluster/overlays/dev
   destination:
     server: https://kubernetes.default.svc
     namespace: default
