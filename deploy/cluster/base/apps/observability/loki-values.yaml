@@ -73,6 +73,16 @@ write:
   replicas: 0
 
 # ─────────────────────────────────────────────
+# Disable memcached caches — too heavy for a kind cluster
+# Re-enable when running on a real cluster with sufficient memory
+# ─────────────────────────────────────────────
+chunksCache:
+  enabled: false
+
+resultsCache:
+  enabled: false
+
+# ─────────────────────────────────────────────
 # ServiceMonitor for Prometheus (kube-prometheus-stack)
 # ─────────────────────────────────────────────
 monitoring:
