@@ -8,8 +8,8 @@ metadata:
 spec:
   project: pathfinder
   sources:
-    - chart: gateway-helm
-      repoURL: oci://docker.io/envoyproxy
+    - chart: envoyproxy/gateway-helm
+      repoURL: registry-1.docker.io
       targetRevision: v1.3.0
       helm:
         valueFiles:

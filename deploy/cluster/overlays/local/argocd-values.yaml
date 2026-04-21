@@ -6,6 +6,14 @@ configs:
   params:
     server.insecure: true   # local only — skip TLS, use port-forward
 
+  # OCI Helm repositories need explicit registration in ArgoCD.
+  repositories:
+    envoyproxy-oci:
+      name: envoyproxy
+      url: registry-1.docker.io
+      type: helm
+      enableOCI: "true"
+
 server:
   ingress:
     enabled: false          # no ingress locally, use port-forward

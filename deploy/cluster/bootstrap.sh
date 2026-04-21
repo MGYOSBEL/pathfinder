@@ -139,11 +139,11 @@ start_cloud_provider() {
   fi
 
   # Kill any existing instance for this cluster
-  pkill -f "cloud-provider-kind" 2>/dev/null || true
+  sudo pkill -f "cloud-provider-kind" 2>/dev/null || true
   sleep 1
 
-  log_info "Starting cloud-provider-kind in the background..."
-  cloud-provider-kind > /tmp/cloud-provider-kind.log 2>&1 &
+  log_info "Starting cloud-provider-kind in the background (requires sudo)..."
+  sudo cloud-provider-kind > /tmp/cloud-provider-kind.log 2>&1 &
   log_info "cloud-provider-kind started (PID $!, log: /tmp/cloud-provider-kind.log)"
 }
 
