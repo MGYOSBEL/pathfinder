@@ -1,0 +1,58 @@
+# Tempo Helm values — single-binary with filesystem PVC
+# Chart: https://github.com/grafana/helm-charts/tree/main/charts/tempo
+#
+# Matches the Docker setup: OTLP + Jaeger receivers, local trace storage.
+
+tempo:
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/blocks
+
+  # Receivers — mirrors the Docker tempo-config.yml
+  receivers:
+    otlp:
+      protocols:
+        http:
+          endpoint: "0.0.0.0:4318"
+        grpc:
+          endpoint: "0.0.0.0:4317"
+    jaeger:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:14250"
+        thrift_http:
+          endpoint: "0.0.0.0:14268"
+        thrift_compact:
+          endpoint: "0.0.0.0:6831"
+
+  ingester:
+    lifecycler:
+      ring:
+        kvstore:
+          store: inmemory
+        replication_factor: 1
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+# ─────────────────────────────────────────────
+# PVC for trace storage
+# ─────────────────────────────────────────────
+persistence:
+  enabled: true
+  size: 5Gi
+  accessModes:
+    - ReadWriteOnce
+
+# ─────────────────────────────────────────────
+# ServiceMonitor for Prometheus
+# ─────────────────────────────────────────────
+serviceMonitor:
+  enabled: true

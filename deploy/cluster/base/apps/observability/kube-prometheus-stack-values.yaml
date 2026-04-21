@@ -1,0 +1,526 @@
+# kube-prometheus-stack Helm values
+# Chart: https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+# Bundles: Prometheus, Alertmanager, Grafana, node-exporter, kube-state-metrics
+
+# ─────────────────────────────────────────────
+# Prometheus
+# ─────────────────────────────────────────────
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    retentionSize: 1GB
+
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+
+    resources:
+      requests:
+        cpu: 200m
+        memory: 400Mi
+      limits:
+        cpu: 500m
+        memory: 800Mi
+
+    # Pick up ServiceMonitors, PodMonitors, and PrometheusRules in ALL namespaces.
+    # Needed so Loki, Tempo, OTel, etc. can register their own monitors.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+    serviceMonitorNamespaceSelector: {}
+    podMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelector: {}
+    podMonitorNamespaceSelector: {}
+    ruleSelectorNilUsesHelmValues: false
+    ruleSelector: {}
+    ruleNamespaceSelector: {}
+
+# ─────────────────────────────────────────────
+# Alertmanager
+# ─────────────────────────────────────────────
+alertmanager:
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 1Gi
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+  # Minimal routing config — no real receivers yet.
+  # Add SMTP/Slack receivers via a Secret overlay when ready.
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ["alertname", "severity", "component"]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: "null"
+      routes:
+        - matchers:
+            - severity="critical"
+          receiver: "null"
+          group_wait: 10s
+        - matchers:
+            - severity="high"
+          receiver: "null"
+    receivers:
+      - name: "null"
+    inhibit_rules:
+      - source_matchers:
+          - severity="critical"
+        target_matchers:
+          - severity="high"
+        equal: ["alertname", "component"]
+
+# ─────────────────────────────────────────────
+# Grafana
+# ─────────────────────────────────────────────
+grafana:
+  enabled: true
+
+  persistence:
+    enabled: true
+    size: 2Gi
+    accessModes:
+      - ReadWriteOnce
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  grafana.ini:
+    analytics:
+      reporting_enabled: false
+      check_for_updates: false
+
+  # Additional datasources beyond the auto-wired Prometheus.
+  # Loki and Tempo are wired here; InfluxDB and TimescaleDB will be added
+  # when those services are deployed.
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      uid: loki
+      access: proxy
+      url: http://loki.observability.svc.cluster.local:3100
+      jsonData:
+        maxLines: 5000
+        derivedFields:
+          - datasourceUid: tempo
+            matcherRegex: "trace_id=(\\w+)"
+            name: TraceID
+            url: "$${__value.raw}"
+
+    - name: Tempo
+      type: tempo
+      uid: tempo
+      access: proxy
+      url: http://tempo.observability.svc.cluster.local:3200
+      jsonData:
+        tracesToLogsV2:
+          datasourceUid: loki
+          spanStartTimeShift: "-1h"
+          spanEndTimeShift: "1h"
+        serviceMap:
+          datasourceUid: prometheus
+        nodeGraph:
+          enabled: true
+        lokiSearch:
+          datasourceUid: loki
+
+  # Dashboard sidecar: watches ConfigMaps labeled `grafana_dashboard: "1"` in
+  # all namespaces and provisions them automatically. Add dashboards by creating
+  # ConfigMaps with that label.
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+      folderAnnotation: grafana_folder
+      provider:
+        foldersFromFilesStructure: true
+    datasources:
+      enabled: true
+      label: grafana_datasource
+      labelValue: "1"
+      searchNamespace: ALL
+
+# ─────────────────────────────────────────────
+# node-exporter
+# ─────────────────────────────────────────────
+nodeExporter:
+  enabled: true
+
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+# ─────────────────────────────────────────────
+# kube-state-metrics
+# ─────────────────────────────────────────────
+kubeStateMetrics:
+  enabled: true
+
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# ─────────────────────────────────────────────
+# Prometheus Operator
+# ─────────────────────────────────────────────
+prometheusOperator:
+  enabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# ─────────────────────────────────────────────
+# Alerting rules
+# Ported from deploy/docker/observability/alerting-rules.yml.
+# NOTE: instance/job label selectors reference docker service names.
+# Update selectors to match actual k8s ServiceMonitor job labels once
+# RabbitMQ, benthos processors, and TimescaleDB are deployed.
+# ─────────────────────────────────────────────
+additionalPrometheusRulesMap:
+  pathfinder-rules:
+    groups:
+      - name: service_availability
+        interval: 30s
+        rules:
+          - alert: MQTTBrokerDown
+            expr: up{job="mqtt-broker"} == 0
+            for: 2m
+            labels:
+              severity: critical
+              component: mqtt
+              slo: availability
+            annotations:
+              summary: "MQTT Broker is down"
+              description: "MQTT broker has been down for more than 2 minutes. All data ingestion is blocked."
+              impact: "Critical - No MQTT messages can be ingested"
+              action: "Check MQTT broker pod status and logs immediately"
+
+          - alert: DataInjectorDown
+            expr: up{job="data-injector"} == 0
+            for: 2m
+            labels:
+              severity: critical
+              component: benthos-injector
+              slo: availability
+            annotations:
+              summary: "Data Injector is down"
+              description: "Benthos data injector has been down for more than 2 minutes. MQTT to RabbitMQ pipeline is broken."
+              impact: "Critical - Pipeline is broken, messages not flowing to RabbitMQ"
+              action: "Check data-injector pod status and logs immediately"
+
+          - alert: RabbitMQDown
+            expr: up{job="rabbitmq"} == 0
+            for: 2m
+            labels:
+              severity: critical
+              component: rabbitmq
+              slo: availability
+            annotations:
+              summary: "RabbitMQ is down"
+              description: "RabbitMQ message broker has been down for more than 2 minutes."
+              impact: "Critical - Message brokering is unavailable"
+              action: "Check RabbitMQ pod status and logs immediately"
+
+          - alert: DataWriterDown
+            expr: up{job="timeseries-writer"} == 0
+            for: 2m
+            labels:
+              severity: critical
+              component: benthos-writer
+              slo: availability
+            annotations:
+              summary: "Data Writer is down"
+              description: "Benthos data writer has been down for more than 2 minutes. RabbitMQ to database pipeline is broken."
+              impact: "Critical - Messages not being written to database"
+              action: "Check timeseries-writer pod status and logs immediately"
+
+          - alert: TimescaleDBDown
+            expr: up{job="postgres-exporter"} == 0
+            for: 2m
+            labels:
+              severity: critical
+              component: timescaledb
+              slo: availability
+            annotations:
+              summary: "TimescaleDB is down"
+              description: "TimescaleDB has been down for more than 2 minutes."
+              impact: "Critical - Data persistence is unavailable"
+              action: "Check TimescaleDB pod status and logs immediately"
+
+      - name: performance_degradation
+        interval: 60s
+        rules:
+          - alert: HighEndToEndLatency
+            expr: |
+              (
+                histogram_quantile(0.99, rate(input_latency_ns_bucket{job="data-injector"}[5m])) / 1e9 +
+                histogram_quantile(0.99, rate(output_latency_ns_bucket{job="timeseries-writer"}[5m])) / 1e9
+              ) > 5
+            for: 10m
+            labels:
+              severity: high
+              component: pipeline
+              slo: performance
+            annotations:
+              summary: "End-to-end message processing latency exceeds SLO"
+              description: "P99 latency is {{ $value | humanizeDuration }}, exceeding 5s SLO for 10 minutes."
+              impact: "High - Real-time data freshness degraded"
+              action: "Check pipeline throughput, database performance, and resource utilization"
+
+          - alert: HighDatabaseWriteLatency
+            expr: histogram_quantile(0.99, rate(output_latency_ns_bucket{job="timeseries-writer"}[5m])) / 1e9 > 2
+            for: 10m
+            labels:
+              severity: high
+              component: timescaledb
+              slo: performance
+            annotations:
+              summary: "Database write latency exceeds SLO"
+              description: "P99 write latency is {{ $value | humanizeDuration }}, exceeding 2s SLO."
+              impact: "High - Database performance degraded"
+              action: "Check TimescaleDB performance, connection pool, and resource utilization"
+
+          - alert: HighRabbitMQQueueDepth
+            expr: sum(rabbitmq_queue_messages{job="rabbitmq"}) > 10000
+            for: 5m
+            labels:
+              severity: high
+              component: rabbitmq
+              slo: performance
+            annotations:
+              summary: "RabbitMQ queue depth critically high"
+              description: "Total queue depth is {{ $value }}, exceeding 10,000 messages for 5 minutes."
+              impact: "High - Backpressure detected, writer may be falling behind"
+              action: "Check data writer performance and database write capacity"
+
+          - alert: RabbitMQQueueGrowing
+            expr: |
+              (
+                sum(rabbitmq_queue_messages{job="rabbitmq"}) -
+                sum(rabbitmq_queue_messages{job="rabbitmq"} offset 5m)
+              ) > 5000
+            for: 5m
+            labels:
+              severity: medium
+              component: rabbitmq
+              slo: performance
+            annotations:
+              summary: "RabbitMQ queue depth growing rapidly"
+              description: "Queue depth increased by {{ $value }} messages in last 5 minutes."
+              impact: "Medium - Potential backpressure building"
+              action: "Monitor writer throughput and consider scaling"
+
+      - name: reliability_slos
+        interval: 60s
+        rules:
+          - alert: LowMessageDeliveryRate
+            expr: |
+              (
+                sum(rate(output_sent{job="timeseries-writer"}[5m]))
+                /
+                sum(rate(input_received{job="data-injector"}[5m]))
+              ) * 100 < 99.0
+            for: 15m
+            labels:
+              severity: critical
+              component: pipeline
+              slo: reliability
+            annotations:
+              summary: "Message delivery success rate below SLO"
+              description: "Delivery rate is {{ $value | humanize }}%, below 99.9% SLO for 15 minutes."
+              impact: "Critical - Potential data loss occurring"
+              action: "Check for errors in injector and writer, verify database connectivity"
+
+          - alert: HighDatabaseWriteErrorRate
+            expr: |
+              (
+                sum(rate(output_error{job="timeseries-writer"}[5m]))
+                /
+                sum(rate(output_sent{job="timeseries-writer"}[5m]))
+              ) * 100 > 1.0
+            for: 10m
+            labels:
+              severity: critical
+              component: timescaledb
+              slo: reliability
+            annotations:
+              summary: "Database write error rate exceeds threshold"
+              description: "Write error rate is {{ $value | humanize }}%, exceeding 1% for 10 minutes."
+              impact: "Critical - Data persistence failures occurring"
+              action: "Check database logs, connection pool, and disk space"
+
+          - alert: HighMQTTConnectionFailureRate
+            expr: |
+              rate(input_connection_failed{job="data-injector"}[5m]) +
+              rate(input_connection_lost{job="data-injector"}[5m]) > 10
+            for: 5m
+            labels:
+              severity: high
+              component: mqtt
+              slo: reliability
+            annotations:
+              summary: "High MQTT connection failure rate"
+              description: "MQTT connections failing at {{ $value | humanize }} per minute for 5 minutes."
+              impact: "High - Network or MQTT broker instability"
+              action: "Check MQTT broker health, network connectivity, and broker logs"
+
+      - name: resource_exhaustion
+        interval: 60s
+        rules:
+          - alert: HighCPUUsage
+            expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+            for: 10m
+            labels:
+              severity: high
+              component: infrastructure
+              slo: resources
+            annotations:
+              summary: "High CPU usage detected"
+              description: "CPU usage is {{ $value | humanize }}%, exceeding 85% for 10 minutes."
+              impact: "High - System performance degradation likely"
+              action: "Check top CPU consumers, consider scaling resources"
+
+          - alert: CriticalCPUUsage
+            expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+            for: 5m
+            labels:
+              severity: critical
+              component: infrastructure
+              slo: resources
+            annotations:
+              summary: "Critical CPU usage"
+              description: "CPU usage is {{ $value | humanize }}%, exceeding 95% for 5 minutes."
+              impact: "Critical - System throttling imminent"
+              action: "Immediate action required - scale resources or reduce load"
+
+          - alert: HighMemoryUsage
+            expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+            for: 5m
+            labels:
+              severity: high
+              component: infrastructure
+              slo: resources
+            annotations:
+              summary: "High memory usage detected"
+              description: "Memory usage is {{ $value | humanize }}%, exceeding 90% for 5 minutes."
+              impact: "High - Risk of OOM kills"
+              action: "Check memory consumers, consider increasing memory or reducing load"
+
+          - alert: HighDiskUsage
+            expr: 100 - ((node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100) > 85
+            for: 5m
+            labels:
+              severity: high
+              component: infrastructure
+              slo: resources
+            annotations:
+              summary: "High disk usage detected"
+              description: "Disk usage is {{ $value | humanize }}%, exceeding 85%."
+              impact: "High - Risk of write failures"
+              action: "Clean up disk space or expand storage capacity"
+
+          - alert: CriticalDiskUsage
+            expr: 100 - ((node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100) > 95
+            for: 2m
+            labels:
+              severity: critical
+              component: infrastructure
+              slo: resources
+            annotations:
+              summary: "Critical disk usage"
+              description: "Disk usage is {{ $value | humanize }}%, exceeding 95%."
+              impact: "Critical - Write failures imminent"
+              action: "Immediate action required - free up disk space"
+
+      - name: observability_stack
+        interval: 60s
+        rules:
+          - alert: PrometheusDown
+            expr: up{job="prometheus"} == 0
+            for: 5m
+            labels:
+              severity: high
+              component: prometheus
+              slo: observability
+            annotations:
+              summary: "Prometheus is down"
+              description: "Prometheus has been down for 5 minutes."
+              impact: "High - Metrics collection stopped"
+              action: "Check Prometheus pod and restart if needed"
+
+          - alert: GrafanaDown
+            expr: up{job="grafana"} == 0
+            for: 5m
+            labels:
+              severity: medium
+              component: grafana
+              slo: observability
+            annotations:
+              summary: "Grafana is down"
+              description: "Grafana has been down for 5 minutes."
+              impact: "Medium - Dashboard access unavailable"
+              action: "Check Grafana pod and restart if needed"
+
+          - alert: LokiDown
+            expr: up{job="loki"} == 0
+            for: 5m
+            labels:
+              severity: medium
+              component: loki
+              slo: observability
+            annotations:
+              summary: "Loki is down"
+              description: "Loki has been down for 5 minutes."
+              impact: "Medium - Log aggregation unavailable"
+              action: "Check Loki pod and restart if needed"
+
+          - alert: PrometheusHighStorageUsage
+            expr: prometheus_tsdb_storage_blocks_bytes / 1024 / 1024 / 1024 > 4
+            for: 1h
+            labels:
+              severity: medium
+              component: prometheus
+              slo: observability
+            annotations:
+              summary: "Prometheus TSDB storage usage approaching limit"
+              description: "Prometheus storage is {{ $value | humanize }} GB (limit: 5Gi PVC)."
+              impact: "Medium - Storage capacity concern"
+              action: "Review retention settings or resize the PVC"

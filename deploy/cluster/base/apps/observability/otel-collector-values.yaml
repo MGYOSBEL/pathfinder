@@ -1,0 +1,112 @@
+# OpenTelemetry Collector Helm values — Deployment mode
+# Chart: https://github.com/open-telemetry/opentelemetry-helm-charts
+#
+# Single Deployment (not DaemonSet) acting as a central telemetry gateway.
+# Receives OTLP from apps, fans out to Tempo (traces) and Jaeger (traces),
+# and exposes metrics to Prometheus.
+# Mirrors the Docker otel-collector-config.yaml.
+
+mode: deployment
+
+image:
+  repository: otel/opentelemetry-collector-contrib
+
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# ─────────────────────────────────────────────
+# Service ports
+# ─────────────────────────────────────────────
+ports:
+  otlp:
+    enabled: true
+    containerPort: 4317
+    servicePort: 4317
+    protocol: TCP
+    appProtocol: grpc
+  otlp-http:
+    enabled: true
+    containerPort: 4318
+    servicePort: 4318
+    protocol: TCP
+  # Metrics exposed by the collector itself (for Prometheus to scrape)
+  metrics:
+    enabled: true
+    containerPort: 8888
+    servicePort: 8888
+    protocol: TCP
+  # Prometheus exporter endpoint (for app-emitted metrics)
+  prometheus-exporter:
+    enabled: true
+    containerPort: 9464
+    servicePort: 9464
+    protocol: TCP
+  pprof:
+    enabled: true
+    containerPort: 1888
+    servicePort: 1888
+    protocol: TCP
+  zpages:
+    enabled: true
+    containerPort: 55679
+    servicePort: 55679
+    protocol: TCP
+
+# ─────────────────────────────────────────────
+# Collector pipeline config
+# ─────────────────────────────────────────────
+config:
+  extensions:
+    health_check: {}
+    pprof:
+      endpoint: "0.0.0.0:1888"
+    zpages:
+      endpoint: "0.0.0.0:55679"
+
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+        http:
+          endpoint: "0.0.0.0:4318"
+
+  exporters:
+    otlp/tempo:
+      endpoint: "tempo.observability.svc.cluster.local:4317"
+      tls:
+        insecure: true
+    otlp/jaeger:
+      endpoint: "jaeger-collector.observability.svc.cluster.local:4317"
+      tls:
+        insecure: true
+    prometheus:
+      endpoint: "0.0.0.0:9464"
+    debug:
+      verbosity: normal
+
+  service:
+    extensions: [health_check, pprof, zpages]
+    pipelines:
+      traces:
+        receivers: [otlp]
+        exporters: [otlp/tempo, otlp/jaeger]
+      metrics:
+        receivers: [otlp]
+        exporters: [prometheus]
+
+# ─────────────────────────────────────────────
+# ServiceMonitor for Prometheus
+# ─────────────────────────────────────────────
+serviceMonitor:
+  enabled: true
+  metricsEndpoints:
+    - port: metrics
+      interval: 30s

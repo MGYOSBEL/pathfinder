@@ -1,0 +1,82 @@
+# Promtail Helm values — DaemonSet collecting pod logs and pushing to Loki
+# Chart: https://github.com/grafana/helm-charts/tree/main/charts/promtail
+#
+# Mirrors the Docker promtail config: discovers pods via Kubernetes SD,
+# attaches namespace/pod/container labels, and ships to Loki.
+
+# ─────────────────────────────────────────────
+# Loki push endpoint
+# ─────────────────────────────────────────────
+config:
+  clients:
+    - url: http://loki.observability.svc.cluster.local:3100/loki/api/v1/push
+
+  # Kubernetes pod log discovery
+  snippets:
+    pipelineStages:
+      - cri: {}
+
+    scrapeConfigs: |
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        pipeline_stages:
+          - cri: {}
+        relabel_configs:
+          # Extract app name from controller, label, or pod name
+          - source_labels:
+              - __meta_kubernetes_pod_controller_name
+            regex: ([0-9a-z-.]+?)(-[0-9a-f]{8,10})?
+            action: replace
+            target_label: __tmp_controller_name
+          - source_labels:
+              - __meta_kubernetes_pod_label_app_kubernetes_io_name
+              - __meta_kubernetes_pod_label_app
+              - __tmp_controller_name
+              - __meta_kubernetes_pod_name
+            regex: ^;*([^;]+)(;.*)?$
+            action: replace
+            target_label: app
+          # Standard k8s labels
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node_name
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [namespace, app]
+            separator: /
+            target_label: job
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+          # Build the log file path from pod UID and container name
+          - source_labels:
+              - __meta_kubernetes_pod_uid
+              - __meta_kubernetes_pod_container_name
+            separator: /
+            target_label: __path__
+            replacement: /var/log/pods/*$1/*.log
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+# ─────────────────────────────────────────────
+# RBAC — needed to list pods for SD
+# ─────────────────────────────────────────────
+rbac:
+  create: true
+  pspEnabled: false
+
+serviceAccount:
+  create: true
+
+# ─────────────────────────────────────────────
+# ServiceMonitor for Prometheus
+# ─────────────────────────────────────────────
+serviceMonitor:
+  enabled: true

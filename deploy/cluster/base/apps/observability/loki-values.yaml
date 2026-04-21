@@ -1,0 +1,85 @@
+# Loki Helm values — SingleBinary mode with filesystem storage
+# Chart: https://github.com/grafana/helm-charts/tree/main/charts/loki
+#
+# Uses SingleBinary (monolithic) deployment mode.
+# Filesystem storage is simpler and sufficient for a side project.
+# Scale to microservices mode + object storage if write volume grows.
+
+deploymentMode: SingleBinary
+
+loki:
+  # Single-tenant — no per-tenant auth needed for a side project
+  auth_enabled: false
+
+  commonConfig:
+    replication_factor: 1
+
+  storage:
+    type: filesystem
+
+  schemaConfig:
+    configs:
+      - from: "2024-01-01"
+        store: tsdb
+        object_store: filesystem
+        schema: v13
+        index:
+          prefix: index_
+          period: 24h
+
+  limits_config:
+    retention_period: 90d
+    ingestion_rate_mb: 10
+    ingestion_burst_size_mb: 20
+    split_queries_by_interval: 15m
+    volume_enabled: true
+    reject_old_samples: false
+    reject_old_samples_max_age: 30m
+
+  compactor:
+    working_directory: /var/loki/compactor
+    compaction_interval: 1h
+    retention_enabled: true
+    retention_delete_delay: 6h
+    retention_delete_worker_count: 10
+
+# ─────────────────────────────────────────────
+# SingleBinary deployment
+# ─────────────────────────────────────────────
+singleBinary:
+  replicas: 1
+
+  persistence:
+    enabled: true
+    size: 5Gi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+# Disable the scalable-mode components (read/write/backend split)
+backend:
+  replicas: 0
+read:
+  replicas: 0
+write:
+  replicas: 0
+
+# ─────────────────────────────────────────────
+# ServiceMonitor for Prometheus (kube-prometheus-stack)
+# ─────────────────────────────────────────────
+monitoring:
+  serviceMonitor:
+    enabled: true
+  selfMonitoring:
+    enabled: false  # reduces noise for a single-binary setup
+  lokiCanary:
+    enabled: false
+
+# Disable gateway (nginx proxy) — not needed for single-binary
+gateway:
+  enabled: false

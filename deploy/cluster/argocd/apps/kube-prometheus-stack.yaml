@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+spec:
+  project: pathfinder
+  sources:
+    - chart: kube-prometheus-stack
+      repoURL: https://prometheus-community.github.io/helm-charts
+      targetRevision: "*"  # TODO: pin to a specific version before going to prod
+      helm:
+        valueFiles:
+          - $values/deploy/cluster/base/apps/observability/kube-prometheus-stack-values.yaml
+    - repoURL: https://github.com/MGYOSBEL/pathfinder
+      targetRevision: devops/setup-k8s-cluster
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: observability
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true  # required: kube-prometheus-stack installs large CRDs
