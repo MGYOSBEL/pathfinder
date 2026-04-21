@@ -28,7 +28,11 @@ loki:
           period: 24h
 
   limits_config:
-    retention_period: 90d
+    # retention_period intentionally omitted — requires compactor.delete_request_store
+    # to be wired correctly end-to-end. Re-enable once the stack is stable:
+    #   retention_period: 90d
+    #   compactor.retention_enabled: true
+    #   compactor.delete_request_store: filesystem
     ingestion_rate_mb: 10
     ingestion_burst_size_mb: 20
     split_queries_by_interval: 15m
@@ -39,10 +43,8 @@ loki:
   compactor:
     working_directory: /var/loki/compactor
     compaction_interval: 1h
-    retention_enabled: true
-    retention_delete_delay: 6h
-    retention_delete_worker_count: 10
-    delete_request_store: filesystem
+    # retention_enabled: false
+    # delete_request_store: filesystem
 
 # ─────────────────────────────────────────────
 # SingleBinary deployment
