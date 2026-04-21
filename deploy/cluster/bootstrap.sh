@@ -20,14 +20,6 @@ set -euo pipefail
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly VALID_ENVS=("local" "prod")
 
-# Temp file for secret values — global so the EXIT trap can clean it up
-_SECRET_VALUES_TMP=""
-
-cleanup() {
-  [[ -n "${_SECRET_VALUES_TMP:-}" ]] && rm -f "$_SECRET_VALUES_TMP"
-}
-trap cleanup EXIT
-
 readonly COLOR_GREEN='\033[0;32m'
 readonly COLOR_RED='\033[0;31m'
 readonly COLOR_YELLOW='\033[1;33m'
@@ -80,8 +72,7 @@ load_secrets() {
 }
 
 bcrypt_hash() {
-  # htpasswd is part of apache2-utils / httpd-tools
-  htpasswd -bnBC 10 "" "$1" | tr -d ':\n'
+  docker run --rm httpd:alpine htpasswd -bnBC 10 "" "$1" | tr -d ':\n'
 }
 
 create_cluster() {
@@ -108,15 +99,6 @@ install_argocd() {
   local password_hash="$2"
   local env_values="${SCRIPT_DIR}/overlays/${env}/argocd-values.yaml"
 
-  # Write secret values to a temp file — cleaned up on EXIT, never persisted
-  _SECRET_VALUES_TMP=$(mktemp)
-
-  cat > "$_SECRET_VALUES_TMP" <<EOF
-configs:
-  secret:
-    argocdServerAdminPassword: "${password_hash}"
-EOF
-
   log_info "Installing ArgoCD..."
   helm repo add argo https://argoproj.github.io/argo-helm --force-update
   helm repo update argo
@@ -125,7 +107,7 @@ EOF
     --namespace argocd \
     --create-namespace \
     --values "${env_values}" \
-    --values "${_SECRET_VALUES_TMP}" \
+    --set-string "configs.secret.argocdServerAdminPassword=${password_hash}" \
     --wait
 
   log_info "ArgoCD installed"
@@ -169,7 +151,7 @@ main() {
   ensure_command "kind"
   ensure_command "kubectl"
   ensure_command "helm"
-  ensure_command "htpasswd"
+  ensure_command "docker"
 
   log_info "Bootstrapping Pathfinder cluster for environment: ${env}"
 
