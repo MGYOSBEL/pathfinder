@@ -43,7 +43,7 @@ ports:
     servicePort: 8888
     protocol: TCP
   # Prometheus exporter endpoint (for app-emitted metrics)
-  prometheus-exporter:
+  prom-exporter:
     enabled: true
     containerPort: 9464
     servicePort: 9464
