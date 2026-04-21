@@ -93,6 +93,9 @@ alertmanager:
 grafana:
   enabled: true
 
+  initChownData:
+    enabled: false
+
   # Recreate strategy required when using ReadWriteOnce PVC — rolling update
   # would leave the old pod holding the volume while the new one tries to mount it.
   deploymentStrategy:
