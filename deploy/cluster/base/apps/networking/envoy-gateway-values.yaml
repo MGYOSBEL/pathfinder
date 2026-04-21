@@ -1,0 +1,23 @@
+# Envoy Gateway Helm values — local environment
+# Chart: oci://docker.io/envoyproxy/gateway-helm
+# Docs: https://gateway.envoyproxy.io/docs/
+
+# The chart installs:
+#   - Gateway API CRDs (GatewayClass, Gateway, HTTPRoute, etc.)
+#   - Envoy Gateway controller
+#   - A default GatewayClass named "eg"
+
+config:
+  envoyGateway:
+    provider:
+      type: Kubernetes
+
+deployment:
+  envoyGateway:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi

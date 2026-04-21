@@ -14,6 +14,7 @@
 #   2. Installs ArgoCD via Helm with env values + secret values (admin password)
 #   3. Applies a single bootstrap Application that points to this repo
 #   4. ArgoCD takes over and syncs everything else (projects, applicationsets, apps)
+#   5. Starts cloud-provider-kind for LoadBalancer support (macOS/Kind)
 
 set -euo pipefail
 
@@ -126,19 +127,56 @@ apply_bootstrap_app() {
   log_info "Bootstrap Application applied — ArgoCD will sync the rest"
 }
 
+start_cloud_provider() {
+  local env="$1"
+  if [[ "$env" != "local" ]]; then
+    return
+  fi
+
+  if ! command -v cloud-provider-kind &>/dev/null; then
+    log_warning "Skipping cloud-provider-kind (not installed)"
+    return
+  fi
+
+  # Kill any existing instance for this cluster
+  pkill -f "cloud-provider-kind" 2>/dev/null || true
+  sleep 1
+
+  log_info "Starting cloud-provider-kind in the background..."
+  cloud-provider-kind > /tmp/cloud-provider-kind.log 2>&1 &
+  log_info "cloud-provider-kind started (PID $!, log: /tmp/cloud-provider-kind.log)"
+}
+
 print_access_info() {
   echo ""
   log_info "Bootstrap complete 🚀"
   echo ""
   echo "  ArgoCD is now syncing deploy/cluster/argocd/ from the repo."
   echo ""
-  echo "  ArgoCD UI:  https://localhost:8080"
-  echo "  Username:   admin"
-  echo "  Password:   (as set in overlays/<env>/secrets.env)"
+  echo "  Once ArgoCD finishes syncing all applications (cert-manager, envoy-gateway,"
+  echo "  gateway-config), services will be available via the Gateway."
   echo ""
-  echo "  To open the UI:"
-  echo "    kubectl port-forward svc/argocd-server -n argocd 8080:80   # local (insecure)"
-  echo "    kubectl port-forward svc/argocd-server -n argocd 8080:443  # prod (TLS)"
+  echo "  Add to /etc/hosts (use the Gateway LoadBalancer IP once assigned):"
+  echo "    127.0.0.1 grafana.pathfinder.local prometheus.pathfinder.local argocd.pathfinder.local jaeger.pathfinder.local alertmanager.pathfinder.local"
+  echo ""
+  echo "  Services (HTTPS — accept self-signed cert in browser):"
+  echo "    ArgoCD:       https://argocd.pathfinder.local"
+  echo "    Grafana:      https://grafana.pathfinder.local"
+  echo "    Prometheus:    https://prometheus.pathfinder.local"
+  echo "    Jaeger:        https://jaeger.pathfinder.local"
+  echo "    Alertmanager:  https://alertmanager.pathfinder.local"
+  echo ""
+  echo "  Credentials:"
+  echo "    ArgoCD — admin / (as set in overlays/<env>/secrets.env)"
+  echo "    Grafana — admin / prom-operator (default from kube-prometheus-stack)"
+  echo ""
+  echo "  Useful commands:"
+  echo "    kubectl get gateway -n networking          # check Gateway status"
+  echo "    kubectl get httproute -n networking         # check route status"
+  echo "    kubectl get svc -n envoy-gateway-system     # check LoadBalancer IP"
+  echo ""
+  echo "  Fallback (if Gateway is not yet ready):"
+  echo "    kubectl port-forward svc/argocd-server -n argocd 8080:80"
   echo ""
 }
 
@@ -153,6 +191,11 @@ main() {
   ensure_command "helm"
   ensure_command "docker"
 
+  if ! command -v cloud-provider-kind &>/dev/null; then
+    log_warning "cloud-provider-kind not found. LoadBalancer services won't get external IPs."
+    log_warning "Install it: go install sigs.k8s.io/cloud-provider-kind@latest"
+  fi
+
   log_info "Bootstrapping Pathfinder cluster for environment: ${env}"
 
   load_secrets "$env"
@@ -163,6 +206,7 @@ main() {
   create_cluster "$env"
   install_argocd "$env" "$password_hash"
   apply_bootstrap_app
+  start_cloud_provider "$env"
   print_access_info
 }
 

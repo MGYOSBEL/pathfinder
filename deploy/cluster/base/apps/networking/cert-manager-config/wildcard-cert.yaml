@@ -1,0 +1,19 @@
+# Wildcard TLS certificate for *.pathfinder.local
+# Issued by the self-signed ClusterIssuer.
+# Creates a Secret named "pathfinder-local-tls" in the networking namespace,
+# referenced by the Gateway HTTPS listener.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: pathfinder-local-wildcard
+  namespace: networking
+spec:
+  secretName: pathfinder-local-tls
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+  dnsNames:
+    - "*.pathfinder.local"
+    - "pathfinder.local"
+  duration: 8760h    # 1 year
+  renewBefore: 720h  # 30 days

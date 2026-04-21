@@ -1,0 +1,32 @@
+# Main Gateway — listens on HTTP (80) and HTTPS (443).
+# Uses the "eg" GatewayClass provided by Envoy Gateway.
+# HTTPS listener references the wildcard cert from cert-manager.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: pathfinder
+  namespace: networking
+spec:
+  gatewayClassName: eg
+  listeners:
+    # HTTP listener — only used for redirect to HTTPS (see http-redirect.yaml)
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Same
+
+    # HTTPS listener — terminates TLS with the wildcard certificate
+    - name: https
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: pathfinder-local-tls
+            namespace: networking
+      allowedRoutes:
+        namespaces:
+          from: Same

@@ -1,0 +1,32 @@
+# cert-manager Helm values — local environment
+# Chart: https://artifacthub.io/packages/helm/cert-manager/cert-manager
+
+# Install CRDs as part of the Helm release.
+# Required for ClusterIssuer, Certificate, etc. to work.
+installCRDs: true
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+webhook:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 50m
+      memory: 64Mi
+
+cainjector:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi

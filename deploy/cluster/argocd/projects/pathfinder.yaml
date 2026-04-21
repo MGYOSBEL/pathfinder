@@ -13,6 +13,8 @@ spec:
     - https://prometheus-community.github.io/helm-charts
     - https://open-telemetry.github.io/opentelemetry-helm-charts
     - https://jaegertracing.github.io/helm-charts
+    - https://charts.jetstack.io                    # cert-manager
+    - oci://docker.io/envoyproxy                    # Envoy Gateway
   destinations:
     - namespace: '*'
       server: https://kubernetes.default.svc

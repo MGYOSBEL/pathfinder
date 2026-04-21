@@ -1,0 +1,17 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: jaeger
+  namespace: networking
+spec:
+  parentRefs:
+    - name: pathfinder
+      namespace: networking
+      sectionName: https
+  hostnames:
+    - jaeger.pathfinder.local
+  rules:
+    - backendRefs:
+        - name: jaeger-query
+          namespace: observability
+          port: 16686
