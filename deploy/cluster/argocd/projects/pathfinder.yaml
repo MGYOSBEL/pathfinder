@@ -6,10 +6,10 @@ metadata:
 spec:
   description: Pathfinder platform project
   sourceRepos:
-    - '*'
+    - https://github.com/MGYOSBEL/pathfinder
   destinations:
     - namespace: '*'
-      server: '*'
+      server: https://kubernetes.default.svc
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'

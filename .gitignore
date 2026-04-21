@@ -25,3 +25,6 @@ go.work.sum
 .env
 deploy/docker/secrets
 deploy/docker/influxdb-explorer
+
+# Cluster environment secrets (never commit)
+deploy/cluster/overlays/*/secrets.env

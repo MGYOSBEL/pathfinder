@@ -3,12 +3,11 @@
 #
 # Usage:
 #   ./deploy/cluster/bootstrap.sh <env>
-#   ./deploy/cluster/bootstrap.sh dev
-#   ./deploy/cluster/bootstrap.sh staging
+#   ./deploy/cluster/bootstrap.sh local
 #   ./deploy/cluster/bootstrap.sh prod
 #
 # Prerequisites per environment:
-#   deploy/cluster/environments/<env>/secrets.env  (copy from secrets.env.example)
+#   deploy/cluster/overlays/<env>/secrets.env  (copy from secrets.env.example)
 #
 # What this script does:
 #   1. Creates a kind cluster for the given environment
@@ -19,7 +18,7 @@
 set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly VALID_ENVS=("dev" "staging" "prod")
+readonly VALID_ENVS=("local" "prod")
 
 # Temp file for secret values — global so the EXIT trap can clean it up
 _SECRET_VALUES_TMP=""
@@ -63,7 +62,7 @@ ensure_command() {
 
 load_secrets() {
   local env="$1"
-  local secrets_file="${SCRIPT_DIR}/environments/${env}/secrets.env"
+  local secrets_file="${SCRIPT_DIR}/overlays/${env}/secrets.env"
 
   if [[ ! -f "$secrets_file" ]]; then
     log_error "Secrets file not found: ${secrets_file}"
@@ -87,7 +86,7 @@ bcrypt_hash() {
 
 create_cluster() {
   local env="$1"
-  local config="${SCRIPT_DIR}/environments/${env}/kind-config.yaml"
+  local config="${SCRIPT_DIR}/overlays/${env}/kind-config.yaml"
   local cluster_name="pathfinder-${env}"
 
   if [[ ! -f "$config" ]]; then
@@ -107,7 +106,7 @@ create_cluster() {
 install_argocd() {
   local env="$1"
   local password_hash="$2"
-  local env_values="${SCRIPT_DIR}/environments/${env}/values/argocd.yaml"
+  local env_values="${SCRIPT_DIR}/overlays/${env}/argocd-values.yaml"
 
   # Write secret values to a temp file — cleaned up on EXIT, never persisted
   _SECRET_VALUES_TMP=$(mktemp)
@@ -153,11 +152,11 @@ print_access_info() {
   echo ""
   echo "  ArgoCD UI:  https://localhost:8080"
   echo "  Username:   admin"
-  echo "  Password:   (as set in environments/<env>/secrets.env)"
+  echo "  Password:   (as set in overlays/<env>/secrets.env)"
   echo ""
   echo "  To open the UI:"
-  echo "    kubectl port-forward svc/argocd-server -n argocd 8080:80   # dev (insecure)"
-  echo "    kubectl port-forward svc/argocd-server -n argocd 8080:443  # staging/prod (TLS)"
+  echo "    kubectl port-forward svc/argocd-server -n argocd 8080:80   # local (insecure)"
+  echo "    kubectl port-forward svc/argocd-server -n argocd 8080:443  # prod (TLS)"
   echo ""
 }
 

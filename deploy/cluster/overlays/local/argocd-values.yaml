@@ -1,0 +1,11 @@
+# ArgoCD Helm values for the local environment
+# Secret values (admin password) are injected at bootstrap time from secrets.env
+# See: https://artifacthub.io/packages/helm/argo/argo-cd
+
+configs:
+  params:
+    server.insecure: true   # local only — skip TLS, use port-forward
+
+server:
+  ingress:
+    enabled: false          # no ingress locally, use port-forward

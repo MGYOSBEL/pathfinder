@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Namespace definitions live here.
+# Each app should have its own namespace; never deploy to the default namespace.
+#
+# Add namespaces as apps are onboarded:
+#
+# resources:
+#   - metrics-injector.yaml     # Namespace for the metrics-injector service
