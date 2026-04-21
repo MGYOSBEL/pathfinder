@@ -3,6 +3,8 @@ kind: AppProject
 metadata:
   name: pathfinder
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
   description: Pathfinder platform project
   sourceRepos:
