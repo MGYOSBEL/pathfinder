@@ -27,7 +27,6 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true  # timescaledb-single installs CRDs
-      - ServerSideDiff=true   # diff uses SSA field ownership; ignores k8s-defaulted fields
   # The chart hardcodes `role: master` in the Service selector but Patroni
   # labels the primary pod as `role: primary` in newer versions (chart bug).
   # We override via service.primary.spec.selector in values, but ignore the
