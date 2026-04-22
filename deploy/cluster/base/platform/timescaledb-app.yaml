@@ -27,15 +27,17 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true  # timescaledb-single installs CRDs
+      - ServerSideDiff=true   # align status comparison with SSA dry-run normalisation
   # The chart hardcodes `role: master` in the Service selector but Patroni
   # labels the primary pod as `role: primary` in newer versions (chart bug).
   # We override via service.primary.spec.selector in values, but ignore the
   # diff here so ArgoCD doesn't loop on the duplicate-key resolution.
   #
-  # The chart also sets subPath: "" on two volume mounts; Kubernetes strips
-  # empty subPath on admission, leaving argocd-controller owning a field with
-  # no value. Similarly, volumeClaimTemplate annotations are rendered as null
-  # but normalised to absent. Ignore both to stop the selfHeal loop.
+  # The chart sets subPath: "" on two volume mounts (storage-volume, wal-volume);
+  # Kubernetes strips empty subPath on admission. With ServerSideDiff the dry-run
+  # normalises this away, but the field stays in argocd-controller's managedFields
+  # ownership. Explicitly ignored here so the residual mismatch doesn't cause
+  # an OutOfSync loop. VCT annotations: null vs absent is handled the same way.
   ignoreDifferences:
     - group: ""
       kind: Service
