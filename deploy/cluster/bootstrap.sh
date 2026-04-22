@@ -76,6 +76,19 @@ bcrypt_hash() {
   docker run --rm httpd:alpine htpasswd -bnBC 10 "" "$1" | tr -d ':\n'
 }
 
+ensure_kind_network() {
+  local subnet="172.21.0.0/16"
+
+  if docker network inspect kind &>/dev/null; then
+    log_info "Docker 'kind' network already exists, reusing it"
+    return
+  fi
+
+  log_info "Creating Docker 'kind' network with fixed subnet ${subnet}..."
+  docker network create --driver bridge --subnet "${subnet}" kind
+  log_info "Docker 'kind' network created"
+}
+
 create_cluster() {
   local env="$1"
   local config="${SCRIPT_DIR}/overlays/${env}/kind-config.yaml"
@@ -203,6 +216,7 @@ main() {
   local password_hash
   password_hash=$(bcrypt_hash "$ARGOCD_ADMIN_PASSWORD")
 
+  ensure_kind_network
   create_cluster "$env"
   install_argocd "$env" "$password_hash"
   apply_bootstrap_app
