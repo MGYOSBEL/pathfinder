@@ -37,3 +37,13 @@ spec:
       name: timescaledb
       jsonPointers:
         - /spec/selector
+    # Kubernetes API server defaults these fields on StatefulSets; the chart
+    # does not set them so ArgoCD would otherwise loop syncing forever.
+    - group: apps
+      kind: StatefulSet
+      name: timescaledb
+      jsonPointers:
+        - /spec/persistentVolumeClaimRetentionPolicy
+      jqPathExpressions:
+        - .spec.volumeClaimTemplates[].spec.volumeMode
+        - .spec.volumeClaimTemplates[].status
