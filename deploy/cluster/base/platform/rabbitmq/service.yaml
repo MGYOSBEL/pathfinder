@@ -1,0 +1,41 @@
+---
+# Headless service for StatefulSet DNS and peer discovery
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-headless
+  namespace: platform
+  labels:
+    app: rabbitmq
+spec:
+  clusterIP: None
+  selector:
+    app: rabbitmq
+  ports:
+    - name: amqp
+      port: 5672
+      targetPort: amqp
+    - name: management
+      port: 15672
+      targetPort: management
+
+---
+# ClusterIP service — used by HTTPRoute (management UI) and app services (AMQP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: platform
+  labels:
+    app: rabbitmq
+spec:
+  type: ClusterIP
+  selector:
+    app: rabbitmq
+  ports:
+    - name: amqp
+      port: 5672
+      targetPort: amqp
+    - name: management
+      port: 15672
+      targetPort: management
