@@ -1,22 +1,20 @@
 # timescale/timescaledb-single Helm values
 # Docs: https://github.com/timescale/helm-charts/tree/main/charts/timescaledb-single
-#
-# Note: timescaledb-single uses Patroni internally for HA.
-# For homelab, replicaCount: 1 disables HA and runs a plain single-node instance.
-
-clusterName: timescaledb
 
 replicaCount: 1
 
 image:
-  repository: timescale/timescaledb
-  tag: latest-pg16
+  repository: timescale/timescaledb-ha
+  tag: pg16-latest
+  pullPolicy: Always
 
-# Credentials for the superuser (postgres) account.
-# TODO: replace with an ExternalSecret or sealed secret before going to prod.
-credentials:
-  superuser:
-    password: postgres
+# Patroni credentials — nested under secrets.credentials, not top-level.
+# TODO: replace with secrets.credentialsSecretName pointing to a sealed secret before prod.
+secrets:
+  credentials:
+    PATRONI_SUPERUSER_PASSWORD: postgres
+    PATRONI_REPLICATION_PASSWORD: replication
+    PATRONI_admin_PASSWORD: admin
 
 persistentVolumes:
   data:
@@ -31,7 +29,11 @@ resources:
     cpu: "1"
     memory: 2Gi
 
-# TimescaleDB tuning — scaled down from Docker config (4GB/4CPU) for homelab
+# TimescaleDB tuning — scaled down from Docker config (4GB/4CPU) for homelab.
+# timescaledb-tune runs automatically; these env vars control its parameters.
+timescaledbTune:
+  enabled: true
+
 env:
   - name: TS_TUNE_MEMORY
     value: "1GB"
@@ -39,9 +41,3 @@ env:
     value: "2"
   - name: TS_TUNE_MAX_CONNS
     value: "100"
-  - name: NO_TS_TUNE
-    value: "false"
-
-# Prometheus metrics exporter sidecar
-prometheus:
-  enabled: true
