@@ -32,9 +32,20 @@ spec:
   # labels the primary pod as `role: primary` in newer versions (chart bug).
   # We override via service.primary.spec.selector in values, but ignore the
   # diff here so ArgoCD doesn't loop on the duplicate-key resolution.
+  #
+  # The chart also sets subPath: "" on two volume mounts; Kubernetes strips
+  # empty subPath on admission, leaving argocd-controller owning a field with
+  # no value. Similarly, volumeClaimTemplate annotations are rendered as null
+  # but normalised to absent. Ignore both to stop the selfHeal loop.
   ignoreDifferences:
     - group: ""
       kind: Service
       name: timescaledb
       jsonPointers:
         - /spec/selector
+    - group: apps
+      kind: StatefulSet
+      name: timescaledb
+      jqPathExpressions:
+        - .spec.template.spec.containers[].volumeMounts[].subPath
+        - .spec.volumeClaimTemplates[].metadata.annotations
