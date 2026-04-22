@@ -4,8 +4,13 @@
 # Bitnami stopped publishing images to Docker Hub; all images now live on their
 # own OCI registry. Without this override the chart defaults to docker.io and
 # the pull fails with "not found".
-image:
-  registry: oci.registry.bitnami.com
+# allowInsecureImages is required because the chart's NOTES.txt validation
+# rejects any registry that isn't in its hardcoded "approved" list — including
+# Bitnami's own oci.registry.bitnami.com. See: bitnami/charts#30850
+global:
+  imageRegistry: oci.registry.bitnami.com
+  security:
+    allowInsecureImages: true
 
 auth:
   username: admin
