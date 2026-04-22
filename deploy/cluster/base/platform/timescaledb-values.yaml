@@ -18,10 +18,19 @@ secrets:
 
 # Expose the PostgreSQL port externally via LoadBalancer.
 # cloud-provider-kind assigns an IP from 172.21.0.0/16 — reachable directly from the host.
+# Expose the PostgreSQL port externally via LoadBalancer.
+# cloud-provider-kind assigns an IP from 172.21.0.0/16 — reachable directly from the host.
+# service.primary.spec.selector overrides the chart's hardcoded `role: master` selector —
+# Patroni now labels the primary pod as `role: primary` (chart bug, not yet fixed upstream).
 service:
   primary:
     type: LoadBalancer
     port: 5432
+    spec:
+      selector:
+        app: timescaledb
+        cluster-name: timescaledb
+        role: primary
 
 persistentVolumes:
   data:
