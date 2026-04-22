@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: influxdb
+  namespace: platform
+  labels:
+    app: influxdb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: influxdb
+  template:
+    metadata:
+      labels:
+        app: influxdb
+    spec:
+      # Mirror Docker config: run as root to match volume permissions
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+      containers:
+        - name: influxdb
+          image: influxdb:3-core
+          command:
+            - influxdb3
+            - serve
+            - --node-id=node0
+            - --object-store=file
+            - --data-dir=/var/lib/influxdb3/data
+            - --plugin-dir=/var/lib/influxdb3/plugins
+          ports:
+            - name: http
+              containerPort: 8181
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/influxdb3/data
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8181
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: influxdb-data

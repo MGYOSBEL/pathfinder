@@ -16,6 +16,10 @@ spec:
     - https://charts.jetstack.io                    # cert-manager
     - oci://docker.io/envoyproxy                    # Envoy Gateway
     - registry-1.docker.io                          # OCI Helm registry
+    - https://charts.bitnami.com/bitnami            # RabbitMQ
+    - https://vernemq.github.io/docker-vernemq      # VerneMQ
+    - https://hivemq.github.io/helm-charts          # HiveMQ
+    - https://charts.timescale.com                  # TimescaleDB
   destinations:
     - namespace: '*'
       server: https://kubernetes.default.svc

@@ -11,3 +11,7 @@ resources:
   - routes/argocd.yaml
   - routes/jaeger.yaml
   - routes/alertmanager.yaml
+  # Platform services with UIs:
+  - routes/rabbitmq.yaml
+  - routes/hivemq.yaml    # only resolves when HiveMQ is the active MQTT broker
+  - routes/influxdb.yaml  # only resolves when InfluxDB is the active TSDB

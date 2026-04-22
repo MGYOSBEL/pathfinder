@@ -1,0 +1,27 @@
+# vernemq/vernemq Helm values
+# Docs: https://github.com/vernemq/docker-vernemq/tree/master/helm/vernemq
+
+replicaCount: 1
+
+# Mirror Docker config: anonymous access enabled for dev/homelab
+additionalEnv:
+  - name: DOCKER_VERNEMQ_ALLOW_ANONYMOUS
+    value: "on"
+  - name: DOCKER_VERNEMQ_ACCEPT_EULA
+    value: "yes"
+
+service:
+  mqtt:
+    port: 1883
+
+persistence:
+  enabled: true
+  size: 1Gi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi

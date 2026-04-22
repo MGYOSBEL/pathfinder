@@ -1,0 +1,33 @@
+# hivemq/hivemq4 Helm values
+# Docs: https://github.com/hivemq/helm-charts/tree/main/charts/hivemq4
+#
+# IMPORTANT — custom image requirement:
+#   This configuration uses the pathfinder-hivemq custom image, which extends
+#   hivemq/hivemq4:latest with the Prometheus extension pre-installed.
+#   The image must be available in the cluster before ArgoCD can sync this app.
+#
+#   For a local kind cluster, load the image before bootstrapping:
+#     docker build -t pathfinder-hivemq:latest deploy/docker/mqtt/hivemq/
+#     kind load docker-image pathfinder-hivemq:latest --name <cluster-name>
+
+image:
+  repository: pathfinder-hivemq
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# MQTT listener port
+hivemq:
+  mqtt:
+    port: 1883
+  # Control Center UI — exposed via HTTPRoute at hivemq.pathfinder.local
+  controlCenter:
+    enabled: true
+    port: 8080
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi

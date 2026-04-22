@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: influxdb
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  project: pathfinder
+  # No official Helm chart exists for InfluxDB 3 Core yet.
+  # Raw Kubernetes manifests are used instead (Kustomize source).
+  source:
+    repoURL: https://github.com/MGYOSBEL/pathfinder
+    targetRevision: devops/setup-k8s-cluster
+    path: deploy/cluster/base/platform/influxdb
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: platform
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

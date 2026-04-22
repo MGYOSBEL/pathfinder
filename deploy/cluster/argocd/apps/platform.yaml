@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform
+  namespace: argocd
+  annotations:
+    # Wave 1: deploy after infrastructure (cert-manager, envoy-gateway at wave 0)
+    # but before gateway routes (wave 2) — platform namespace must exist first.
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: pathfinder
+  source:
+    repoURL: https://github.com/MGYOSBEL/pathfinder
+    targetRevision: devops/setup-k8s-cluster
+    # Kustomize directory: edit base/platform/kustomization.yaml to select
+    # which MQTT broker and time-series DB to deploy.
+    path: deploy/cluster/base/platform
+  destination:
+    server: https://kubernetes.default.svc
+    # Application CRDs live in the argocd namespace.
+    # Each child app deploys its own resources to the platform namespace.
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

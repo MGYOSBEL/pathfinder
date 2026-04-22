@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: influxdb-explorer-config
+  namespace: platform
+data:
+  # Explorer UI config — points to the InfluxDB 3 service within the cluster.
+  # TODO: replace DEFAULT_API_TOKEN with a real token once auth is configured.
+  config.json: |
+    {
+      "DEFAULT_INFLUX_SERVER": "http://influxdb.platform.svc:8181",
+      "DEFAULT_INFLUX_DATABASE": "data",
+      "DEFAULT_API_TOKEN": "",
+      "DEFAULT_SERVER_NAME": "pathfinder"
+    }

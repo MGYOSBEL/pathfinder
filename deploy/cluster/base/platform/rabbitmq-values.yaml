@@ -1,0 +1,28 @@
+# bitnami/rabbitmq Helm values
+# Docs: https://github.com/bitnami/charts/tree/main/bitnami/rabbitmq
+
+auth:
+  username: admin
+  password: admin  # TODO: replace with a Secret reference before going to prod
+
+persistence:
+  enabled: true
+  size: 2Gi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Expose the management UI as a ClusterIP service (accessed via HTTPRoute)
+service:
+  type: ClusterIP
+
+# Prometheus metrics — enable once ServiceMonitor setup is in place
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false

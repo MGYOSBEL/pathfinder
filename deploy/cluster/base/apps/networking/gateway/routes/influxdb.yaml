@@ -1,0 +1,17 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: influxdb
+  namespace: networking
+spec:
+  parentRefs:
+    - name: pathfinder
+      namespace: networking
+      sectionName: https
+  hostnames:
+    - influxdb.pathfinder.local
+  rules:
+    - backendRefs:
+        - name: influxdb-explorer
+          namespace: platform
+          port: 80
