@@ -16,6 +16,13 @@ secrets:
     PATRONI_REPLICATION_PASSWORD: replication
     PATRONI_admin_PASSWORD: admin
 
+# Expose the PostgreSQL port externally via LoadBalancer.
+# cloud-provider-kind assigns an IP from 172.21.0.0/16 — reachable directly from the host.
+service:
+  primary:
+    type: LoadBalancer
+    port: 5432
+
 persistentVolumes:
   data:
     enabled: true
