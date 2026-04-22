@@ -5,7 +5,7 @@ replicaCount: 1
 
 image:
   repository: timescale/timescaledb-ha
-  tag: pg16-latest
+  tag: pg16
   pullPolicy: Always
 
 # Patroni credentials — nested under secrets.credentials, not top-level.
