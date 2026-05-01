@@ -23,7 +23,11 @@ spec:
   syncPolicy:
     automated:
       prune: true
-      selfHeal: true
+      selfHeal: false  # selfHeal causes a PreSync loop that deletes hook Secrets
+                       # while the pod is running, crashing it. The StatefulSet
+                       # OutOfSync status is a known false-positive (argocd app diff
+                       # returns exit 0 — no actual diff). Disabling selfHeal stops
+                       # the loop; re-enable only after the upstream chart bug is fixed.
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true  # timescaledb-single installs CRDs
